@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:host": "vite --host",
     "build": "tsc -b && vite build && npm run check:leak",
     "check:leak": "node scripts/check-leak.mjs",
     "preview": "vite preview",

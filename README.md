@@ -30,9 +30,30 @@ npm run build      # tsc + vite build + check-leak
 npm run typecheck
 ```
 
-Las funciones de `api/` corren en Vercel. En local, `vercel dev` las levanta; con
-`npm run dev` a secas `/api/kilos` falla y la página se comporta como si el
-contador estuviera en cero, que es exactamente el estado que hay que poder ver.
+`npm run dev` alcanza para ver las tres pantallas sin Redis ni `vercel dev`: un
+plugin de Vite (`mockApi` en `vite.config.ts`) contesta `/api/kilos` y
+`/api/share`, y sirve `/open` sin extensión igual que en producción. Solo corre
+en `vite dev`, así que no existe en el build.
+
+Los estados se fuerzan desde la URL:
+
+| URL | Qué muestra |
+|---|---|
+| `/` | 214 kg totales, 6 de la semana |
+| `/?over` | semana en 14: la valija en OVERWEIGHT, perdiendo por abajo |
+| `/?kg=12` | por debajo del umbral: sin número grande, solo la barra |
+| `/?kg=1204&week=3` | cualquier combinación |
+| `/open` | tira un sticker al azar y corre la coreografía |
+| `/open?sticker=sticker_12` | fuerza uno: sirve para la rara, la maldita y el duplicado |
+
+Entrando dos veces a la misma `?sticker=` sale el estado de duplicado. Para
+volver a empezar con la colección vacía: `localStorage.clear()` en la consola.
+
+`npm run dev:host` expone el server en la red local, para abrirlo desde el
+teléfono y revisar el fold en un 360 de verdad.
+
+Las funciones de `api/` corren en Vercel. `vercel dev` las levanta de verdad
+contra KV cuando haga falta probar el webhook.
 
 ## Estructura
 

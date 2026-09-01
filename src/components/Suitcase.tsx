@@ -78,8 +78,10 @@ export function Suitcase({ ratio, overweight = false, breathing = true, classNam
         alt=""
         width={1024}
         height={1024}
-        fetchPriority="high"
         decoding="async"
+        // React 18 no conoce fetchPriority en camelCase: lo descarta con un
+        // warning. En minúscula pasa derecho al atributo.
+        {...({ fetchpriority: 'high' } as Record<string, string>)}
       />
 
       {overweight && <Spill />}

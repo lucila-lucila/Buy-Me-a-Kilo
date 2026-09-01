@@ -7,7 +7,7 @@ import { downloadSticker } from '../../lib/shareCard'
 import { useKilos } from '../../lib/useKilos'
 import { useReducedMotion } from '../../lib/reducedMotion'
 import { COUNTER_THRESHOLD_KG, WEEKLY_GOAL_KG } from '../../config/goals'
-import type { Sticker } from '../../config/stickers'
+import { byId, type Sticker } from '../../config/stickers'
 import { Suitcase } from '../Suitcase'
 import { Reveal } from './Reveal'
 import { ShareButton } from './ShareButton'
@@ -20,6 +20,20 @@ import { ShareButton } from './ShareButton'
  * peor que un sticker filtrado. Nada de tokens de un solo uso.
  */
 type Phase = 'fill' | 'bag' | 'shake' | 'burst' | 'reveal'
+
+/**
+ * En desarrollo se puede fijar qué sticker sale: /open?sticker=sticker_12.
+ * Sirve para revisar la rara, la maldita y el duplicado sin tirar veinte veces.
+ * La rama entera desaparece del bundle de producción: import.meta.env.DEV se
+ * reemplaza por false en el build y rollup se lleva el bloque muerto.
+ */
+function pickSticker(): Sticker {
+  if (import.meta.env.DEV) {
+    const forced = byId(new URLSearchParams(window.location.search).get('sticker') ?? '')
+    if (forced) return forced
+  }
+  return rollSticker()
+}
 
 const TIMELINE: [Phase, number][] = [
   ['bag', 1300],
@@ -37,7 +51,7 @@ export default function OpenScene() {
   // veces en dev, así que la tirada y el guardado van tras un ref.
   const rolled = useRef<{ sticker: Sticker; duplicate: boolean; owned: number } | null>(null)
   if (rolled.current === null) {
-    const sticker = rollSticker()
+    const sticker = pickSticker()
     rolled.current = { sticker, duplicate: false, owned: 0 }
   }
   const saved = useRef(false)
