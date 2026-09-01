@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#14091C" />
+    <title>Buy Me a Kilo</title>
+    <meta
+      name="description"
+      content="There is one suitcase. Fill a kilo, get a sticker. You don't get to pick which one."
+    />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Buy Me a Kilo" />
+    <meta
+      property="og:description"
+      content="I have 23 kilos. Most of them are empty. Fill a kilo, get a sticker."
+    />
+    <meta property="og:image" content="/stickers/png/sticker_11.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <link rel="icon" href="/stickers/webp/sticker_11.webp" type="image/webp" />
+
+    <!-- El hero tiene que estar pintado en menos de 2s en 4G. -->
+    <link rel="preload" href="/fonts/bagel-fat-one.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/familjen-grotesk.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/suitcase/hero_suitcase.webp" as="image" type="image/webp" />
+    <style>
+      html,
+      body {
+        background: #14091c;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

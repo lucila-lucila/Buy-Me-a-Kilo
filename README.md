@@ -1,0 +1,109 @@
+# Buy Me a Kilo
+
+Una alcancía de viaje anónima. Una sola valija de 23 kilos, una sola persona, y
+un contador que sube. Cada aporte llena un kilo y devuelve un sticker al azar de
+una colección de doce.
+
+No es una plataforma. Hay una sola valija y no es de nadie más.
+
+## Reglas que el código tiene que sostener
+
+1. **No se guarda ningún dato de quien aporta.** El webhook de Ko-fi manda
+   nombre, mail, mensaje y dirección de envío: se descartan en el parseo y no se
+   loguean nunca, ni en consola. Lo único que persiste son contadores enteros
+   agregados.
+2. **La colección vive en el localStorage de cada persona.** Sin cuentas, sin
+   login, sin tabla de usuarios.
+3. **Sin cookies de terceros ni analytics con cookies.**
+4. **El contador es real.** Si KV se cae se muestra el último valor conocido, no
+   un número inventado.
+5. **La capa de economía no puede llegar al cliente.** Montos, comisiones y
+   metas internas viven solo en `api/`. Ninguna de esas env vars lleva prefijo
+   `VITE_`, y `npm run check:leak` corre en cada build para verificarlo.
+
+## Correr el proyecto
+
+```bash
+npm install
+npm run dev        # http://localhost:5173  (y /open.html para la revelación)
+npm run build      # tsc + vite build + check-leak
+npm run typecheck
+```
+
+Las funciones de `api/` corren en Vercel. En local, `vercel dev` las levanta; con
+`npm run dev` a secas `/api/kilos` falla y la página se comporta como si el
+contador estuviera en cero, que es exactamente el estado que hay que poder ver.
+
+## Estructura
+
+```
+index.html / open.html      dos entries, sin router: /open no carga el JS del hero
+api/kofi-webhook.ts         POST de Ko-fi -> contadores
+api/kilos.ts                GET publico, devuelve { total, week } y nada mas
+api/stats.ts                dashboard privado, 404 sin key
+api/share.ts                contador de tarjetas generadas
+api/_lib/economy.ts         precios, comisiones y metas. SOLO SERVIDOR.
+src/config/tiers.ts         los cuatro tiers, sin precios
+src/config/stickers.ts      los doce stickers y los pesos de rareza
+src/config/goals.ts         WEEKLY_GOAL_KG y COUNTER_THRESHOLD_KG
+src/copy.ts                 todo el texto
+src/lib/shareCard.ts        la tarjeta 1080x1350, compuesta en canvas
+scripts/check-leak.mjs      falla el build si la economia se filtro a dist/
+public/                     las quince ilustraciones, servidas estaticas
+```
+
+## Variables de entorno
+
+Copiá `.env.example` y cargalas en Vercel. Ninguna lleva prefijo `VITE_`.
+
+Las mínimas para que funcione: `KOFI_VERIFICATION_TOKEN`, `KV_REST_API_URL`,
+`KV_REST_API_TOKEN` y `STATS_SECRET`.
+
+## Ko-fi
+
+1. Creá los cuatro items de la tienda y anotá el `direct_link_code` de cada uno
+   (la parte final de `ko-fi.com/s/<code>`).
+2. Pegalos en `src/config/tiers.ts`, reemplazando los `PLACEHOLDER_*`. Hasta que
+   estén, los botones abren el perfil de Ko-fi en vez del item.
+3. En Ko-fi → Settings → API: pegá la URL del webhook
+   (`https://<dominio>/api/kofi-webhook`) y copiá el verification token a la env
+   var.
+4. En cada item, poné `https://<dominio>/open` como URL de redirección.
+
+El webhook mapea los kilos por `direct_link_code`, no por monto: un descuento o
+un cambio de precio no puede desalinear el contador. La escalera por monto queda
+solo como respaldo para las donations sueltas.
+
+Los pagos en una moneda distinta de USD no suman kilos (no inventamos tipo de
+cambio) y quedan contados aparte, marcados en el dashboard: si aparecen seguido
+es que hay algo mal configurado en Ko-fi.
+
+## Dashboard privado
+
+`GET /api/stats?key=<STATS_SECRET>` devuelve JSON con bruto, neto estimado,
+ticket promedio, distribución por tier contra la mezcla esperada, en qué piso
+cayó la semana y la proyección al ritmo de las últimas tres.
+
+Sin key válida devuelve 404, no 401: no tiene que notarse que existe. Nada de
+esto se muestra nunca en la página pública.
+
+## Assets
+
+Las quince ilustraciones están en `public/`, servidas estáticas. Los `masters/`
+a 2048 se guardan aparte y no van al repo.
+
+Todas tienen fondo negro real y se montan con `mix-blend-mode: screen`, así que
+el negro desaparece contra el fondo de la página. Dos cosas que hay que respetar
+si se reexportan:
+
+- El contenedor de cualquier imagen con `screen` necesita un fondo **opaco**
+  (`.suitcase`, `.grid__cell`, `.stage`). Sobre un backdrop transparente el
+  blend no se aplica y aparece un cuadrado negro.
+- Nada de `perspective` ni `transform-style: preserve-3d` en un ancestro:
+  Chromium desactiva `mix-blend-mode` dentro de un contexto 3D. El tilt del
+  sticker usa `transformPerspective` dentro del propio transform por eso.
+
+La valija se monta con la onda SVG abajo y `hero_suitcase.webp` encima. Las
+medidas de la cavidad están en `CAVITY`, dentro de `src/components/Suitcase.tsx`,
+y salen de medir la imagen: si se reexporta la valija, hay que volver a medirlas.
+`hero_suitcase_interior_claro.webp` es la alternativa con el interior más suave.

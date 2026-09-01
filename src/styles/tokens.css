@@ -1,0 +1,25 @@
+:root {
+  --void: #14091c;
+  --bubblegum: #ff4fa3;
+  --electric: #3b7bff;
+  --sherbet: #ffa24c;
+  --mint: #7bf0c8;
+  --paper: #fff6ec;
+
+  /* Derivados. Solo opacidades del paper y de la paleta: nada de grises nuevos. */
+  --paper-dim: rgba(255, 246, 236, 0.68);
+  --paper-faint: rgba(255, 246, 236, 0.56);
+  --hairline: rgba(255, 246, 236, 0.14);
+  /* Fondo opaco de las celdas que llevan mix-blend-mode: screen. */
+  --cell: #1d1126;
+  --hairline-strong: rgba(255, 246, 236, 0.28);
+
+  --display: 'Bagel Fat One', 'Trebuchet MS', system-ui, sans-serif;
+  --body: 'Familjen Grotesk', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  --page: 720px;
+  --gap: 0.75rem;
+
+  /* Sube con el contador: es el único gradiente de la página. */
+  --glow: 0.35;
+}
