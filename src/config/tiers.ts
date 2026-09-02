@@ -38,16 +38,30 @@ export const TIERS: Tier[] = [
     id: 'overweight',
     label: 'Overweight fee',
     kilos: 12,
-    note: 'twelve kilos, and a sticker that exists in real life',
+    note: 'twelve kilos. this one needs an address. the only one that does.',
     kofiItemCode: 'PLACEHOLDER_OVERWEIGHT',
   },
 ]
 
-export const KOFI_USERNAME = 'buymeakilo'
+/**
+ * Usuario de Ko-fi. Vacío a propósito hasta que exista la cuenta.
+ *
+ * No poner uno inventado: si ese handle le pertenece a otra persona, cada
+ * visitante que quiere pagar termina en el Ko-fi de un desconocido. Un botón
+ * que no anda es mucho menos grave.
+ */
+export const KOFI_USERNAME = ''
 
-/** URL del item en Ko-fi. El precio se ve ahí, entero, antes de pagar. */
-export function kofiUrl(tier: Tier): string {
-  return tier.kofiItemCode.startsWith('PLACEHOLDER')
-    ? `https://ko-fi.com/${KOFI_USERNAME}` // TODO: reemplazar por el direct_link_code real
-    : `https://ko-fi.com/s/${tier.kofiItemCode}`
+/**
+ * URL del item en Ko-fi, o null si el tier todavía no está configurado.
+ * El precio se ve ahí, entero, antes de pagar.
+ */
+export function kofiUrl(tier: Tier): string | null {
+  if (!tier.kofiItemCode.startsWith('PLACEHOLDER')) {
+    return `https://ko-fi.com/s/${tier.kofiItemCode}`
+  }
+  return KOFI_USERNAME ? `https://ko-fi.com/${KOFI_USERNAME}` : null
 }
+
+/** Los tiers que todavía tienen el código de Ko-fi sin cargar. */
+export const unconfiguredTiers = (): Tier[] => TIERS.filter((t) => kofiUrl(t) === null)

@@ -940,3 +940,18 @@ img {
     animation: none;
   }
 }
+
+/* Tier sin item de Ko-fi cargado: se ve, no se puede clickear. */
+.tier--off {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.tier--off:hover {
+  transform: none;
+  background: rgba(255, 246, 236, 0.03);
+}
+
+.tier--three.tier--off:hover {
+  background: linear-gradient(rgba(255, 79, 163, 0.16), rgba(255, 79, 163, 0.05));
+}

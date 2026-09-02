@@ -23,6 +23,8 @@ export const copy = {
   tiers: {
     heading: 'Fill a kilo',
     priceNote: 'The price shows up in checkout, before you pay.',
+    /** Cuando los items de Ko-fi todavía no existen. */
+    unconfigured: 'The shop is not open yet.',
   },
 
   grid: {
@@ -65,5 +67,9 @@ export const copy = {
     cursed: 'i got the sad one.',
   } as const,
 
+  /**
+   * Solo el respaldo para localhost. En producción el pie de la tarjeta usa el
+   * dominio real desde el que se abrió la página: ver src/lib/domain.ts.
+   */
   domain: 'buymeakilo.com',
 } as const

@@ -6,8 +6,9 @@
   "scripts": {
     "dev": "vite",
     "dev:host": "vite --host",
-    "build": "tsc -b && vite build && npm run check:leak",
+    "build": "tsc -b && vite build && npm run check:leak && npm run check:config",
     "check:leak": "node scripts/check-leak.mjs",
+    "check:config": "node scripts/check-config.mjs",
     "preview": "vite preview",
     "typecheck": "tsc -b --force"
   },

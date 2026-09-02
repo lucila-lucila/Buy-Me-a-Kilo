@@ -89,8 +89,17 @@ a propósito, son públicas por diseño y no tienen nada nuestro adentro.
 
 1. Creá los cuatro items de la tienda y anotá el `direct_link_code` de cada uno
    (la parte final de `ko-fi.com/s/<code>`).
-2. Pegalos en `src/config/tiers.ts`, reemplazando los `PLACEHOLDER_*`. Hasta que
-   estén, los botones abren el perfil de Ko-fi en vez del item.
+2. Pegalos en `src/config/tiers.ts`, reemplazando los `PLACEHOLDER_*`, y cargá
+   `KOFI_USERNAME` con tu usuario.
+
+   Mientras falten, esos tiers se dibujan apagados y sin link, y bajo la escalera
+   dice `The shop is not open yet.` A propósito: un usuario de Ko-fi puesto a ojo
+   manda a quien quiere pagarte al perfil de un desconocido, que es peor que un
+   botón que no anda. `npm run check:config` lo avisa en cada build.
+
+   Cuando salga a la calle, poné `REQUIRE_KOFI_CONFIG=1` en Vercel: a partir de
+   ahí un deploy sin los códigos cargados falla en vez de publicar cuatro botones
+   muertos.
 3. En Ko-fi → Settings → API: pegá la URL del webhook
    (`https://<dominio>/api/kofi-webhook`) y copiá el verification token a la env
    var.
@@ -99,6 +108,15 @@ a propósito, son públicas por diseño y no tienen nada nuestro adentro.
 El webhook mapea los kilos por `direct_link_code`, no por monto: un descuento o
 un cambio de precio no puede desalinear el contador. La escalera por monto queda
 solo como respaldo para las donations sueltas.
+
+El dominio del pie de la tarjeta para compartir sale del host desde el que se
+abrió la página (`src/lib/domain.ts`), no de una constante: funciona igual en un
+preview, en el dominio final, y el día que cambie no hay que acordarse de tocar
+nada. `copy.domain` es solo el respaldo para localhost.
+
+El tier de overweight es el único que necesita una dirección, y la nota del botón
+lo dice. La dirección la recibe y la guarda Ko-fi: la despachás desde su panel, y
+el campo `shipping` del webhook se descarta como todo el resto.
 
 Los pagos en una moneda distinta de USD no suman kilos (no inventamos tipo de
 cambio) y quedan contados aparte, marcados en el dashboard: si aparecen seguido

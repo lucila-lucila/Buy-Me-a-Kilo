@@ -1,4 +1,4 @@
-import { TIERS, kofiUrl, type Tier } from '../config/tiers'
+import { TIERS, kofiUrl, unconfiguredTiers, type Tier } from '../config/tiers'
 import { copy } from '../copy'
 
 /**
@@ -17,19 +17,36 @@ const AREA: Record<string, string> = {
 }
 
 function TierButton({ tier }: { tier: Tier }) {
-  return (
-    <a
-      className={`tier ${AREA[tier.id]}`}
-      href={kofiUrl(tier)}
-      target="_blank"
-      rel="noopener noreferrer"
-      data-tier={tier.id}
-    >
+  const href = kofiUrl(tier)
+  const inside = (
+    <>
       <span className="tier__label">{tier.label}</span>
       <span className="tier__note">{tier.note}</span>
       <span className="tier__kilos" aria-hidden="true">
         {tier.kilos} kg
       </span>
+    </>
+  )
+
+  // Sin código de Ko-fi cargado no hay a dónde mandar a nadie. Antes que un link
+  // que va a un lugar equivocado, no hay link.
+  if (href === null) {
+    return (
+      <div className={`tier ${AREA[tier.id]} tier--off`} data-tier={tier.id} aria-disabled="true">
+        {inside}
+      </div>
+    )
+  }
+
+  return (
+    <a
+      className={`tier ${AREA[tier.id]}`}
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      data-tier={tier.id}
+    >
+      {inside}
     </a>
   )
 }
@@ -40,7 +57,9 @@ export function TierGrid() {
       {TIERS.map((tier) => (
         <TierButton key={tier.id} tier={tier} />
       ))}
-      <p className="tiers__note">{copy.tiers.priceNote}</p>
+      <p className="tiers__note">
+        {unconfiguredTiers().length > 0 ? copy.tiers.unconfigured : copy.tiers.priceNote}
+      </p>
     </div>
   )
 }
