@@ -80,6 +80,11 @@ Copiá `.env.example` y cargalas en Vercel. Ninguna lleva prefijo `VITE_`.
 Las mínimas para que funcione: `KOFI_VERIFICATION_TOKEN`, `KV_REST_API_URL`,
 `KV_REST_API_TOKEN` y `STATS_SECRET`.
 
+Si agregás una variable de servidor nueva, sumala a `ECONOMY_ENV` en
+`scripts/check-leak.mjs`: es la lista contra la que el build verifica que nadie
+le puso prefijo `VITE_`. Las `VITE_VERCEL_*` que inyecta Vercel están excluidas
+a propósito, son públicas por diseño y no tienen nada nuestro adentro.
+
 ## Ko-fi
 
 1. Creá los cuatro items de la tienda y anotá el `direct_link_code` de cada uno
