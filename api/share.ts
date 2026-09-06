@@ -3,8 +3,8 @@
  * sin IP, sin nada que identifique a quien la generó. La relación entre aportes
  * y tarjetas dice si el motor de distribución funciona.
  */
-import { cmd } from './_lib/redis'
-import { K } from './_lib/keys'
+import { cmd } from './_lib/redis.js'
+import { K } from './_lib/keys.js'
 
 export const config = { runtime: 'edge' }
 

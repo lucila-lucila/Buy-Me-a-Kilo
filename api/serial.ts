@@ -9,8 +9,8 @@
  * se puede verificar después. Es una marca, y alcanza para que la tarjeta de
  * cada persona sea distinta de la de todas las demás.
  */
-import { cmd, toInt, describeKvEnv } from './_lib/redis'
-import { K } from './_lib/keys'
+import { cmd, toInt, describeKvEnv } from './_lib/redis.js'
+import { K } from './_lib/keys.js'
 
 export const config = { runtime: 'edge' }
 

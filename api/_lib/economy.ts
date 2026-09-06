@@ -10,7 +10,7 @@
  * la URL del checkout. Se importa en vez de duplicarse para que no puedan
  * quedar desincronizados, que sería un bug de plata silencioso.
  */
-import { TIERS, type TierId } from '../../src/config/tiers'
+import { TIERS, type TierId } from '../../src/config/tiers.js'
 
 const env = (k: string, fallback: number): number => {
   const raw = process.env[k]

@@ -2,8 +2,11 @@
   "compilerOptions": {
     "target": "ES2022",
     "lib": ["ES2022", "DOM"],
-    "module": "ESNext",
-    "moduleResolution": "bundler",
+    // Igual que Vercel: el package.json declara "type": "module", así que las
+    // funciones se compilan como ESM de Node y los imports relativos necesitan
+    // extensión explícita. Con "bundler" esto pasaba local y fallaba en el deploy.
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     "types": ["node"],
     "strict": true,
     "noUnusedLocals": true,

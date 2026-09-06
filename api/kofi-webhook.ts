@@ -6,10 +6,10 @@
  * el resto del payload muere en esta función. NUNCA agregar un console.log del
  * objeto entero, ni siquiera para debuggear una vez.
  */
-import { pipeline, cmd, RedisUnavailable, describeKvEnv } from './_lib/redis'
-import { K } from './_lib/keys'
-import { isoWeekKey } from './_lib/week'
-import { shopCodeToKilos, kilosForAmountCents } from './_lib/economy'
+import { pipeline, cmd, RedisUnavailable, describeKvEnv } from './_lib/redis.js'
+import { K } from './_lib/keys.js'
+import { isoWeekKey } from './_lib/week.js'
+import { shopCodeToKilos, kilosForAmountCents } from './_lib/economy.js'
 
 export const config = { runtime: 'edge' }
 

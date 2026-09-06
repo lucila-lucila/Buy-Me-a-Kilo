@@ -2,9 +2,9 @@
  * Lo único que el front puede saber: { total, week }.
  * Sin montos, sin cantidad de aportes, sin metas internas.
  */
-import { pipeline, toInt, describeKvEnv } from './_lib/redis'
-import { K } from './_lib/keys'
-import { isoWeekKey } from './_lib/week'
+import { pipeline, toInt, describeKvEnv } from './_lib/redis.js'
+import { K } from './_lib/keys.js'
+import { isoWeekKey } from './_lib/week.js'
 
 export const config = { runtime: 'edge' }
 

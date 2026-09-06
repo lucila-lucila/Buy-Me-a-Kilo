@@ -5,10 +5,10 @@
  * notarse que el endpoint existe. Nada de lo que sale de acá se muestra nunca
  * en la página pública.
  */
-import { pipeline, toInt, describeKvEnv } from './_lib/redis'
-import { K } from './_lib/keys'
-import { isoWeekKey, previousWeekKeys } from './_lib/week'
-import { TIERS, type TierId } from '../src/config/tiers'
+import { pipeline, toInt, describeKvEnv } from './_lib/redis.js'
+import { K } from './_lib/keys.js'
+import { isoWeekKey, previousWeekKeys } from './_lib/week.js'
+import { TIERS, type TierId } from '../src/config/tiers.js'
 import {
   KOFI_PCT,
   PAYPAL_PCT,
@@ -20,7 +20,7 @@ import {
   TARGETS,
   WEEKS_REMAINING,
   netCentsForTier,
-} from './_lib/economy'
+} from './_lib/economy.js'
 
 export const config = { runtime: 'edge' }
 
