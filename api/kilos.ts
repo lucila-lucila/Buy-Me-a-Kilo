@@ -2,7 +2,7 @@
  * Lo único que el front puede saber: { total, week }.
  * Sin montos, sin cantidad de aportes, sin metas internas.
  */
-import { pipeline, toInt } from './_lib/redis'
+import { pipeline, toInt, describeKvEnv } from './_lib/redis'
 import { K } from './_lib/keys'
 import { isoWeekKey } from './_lib/week'
 
@@ -26,7 +26,9 @@ export default async function handler(): Promise<Response> {
       },
     )
   } catch {
-    console.error('kilos: kv no disponible')
+    // Los logs de Vercel son privados de la cuenta, así que acá sí va el detalle:
+    // qué variables de KV ve la función. Nombres, nunca valores.
+    console.error('kilos: kv no disponible', JSON.stringify(describeKvEnv()))
     // null explícito: el front deja el último valor que ya tenía en pantalla.
     return Response.json({ total: null, week: null }, { status: 200, headers: { 'Cache-Control': 'no-store' } })
   }

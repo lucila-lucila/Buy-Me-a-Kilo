@@ -54,7 +54,13 @@ function netOf(grossCents: number, contribs: number, overweightCount: number): n
 export default async function handler(req: Request): Promise<Response> {
   const secret = process.env.STATS_SECRET
   const key = new URL(req.url).searchParams.get('key') ?? ''
-  if (!secret || !safeEqual(key, secret)) return NOT_FOUND
+  if (!secret) {
+    // Para afuera es un 404 igual al de una clave equivocada. En los logs, que
+    // son privados, queda claro que la diferencia es que la env var no llegó.
+    console.error('stats: STATS_SECRET no configurado en este entorno')
+    return NOT_FOUND
+  }
+  if (!safeEqual(key, secret)) return NOT_FOUND
 
   const week = isoWeekKey()
   const prev = previousWeekKeys(3)

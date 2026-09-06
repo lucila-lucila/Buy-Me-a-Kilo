@@ -6,7 +6,7 @@
  * el resto del payload muere en esta función. NUNCA agregar un console.log del
  * objeto entero, ni siquiera para debuggear una vez.
  */
-import { pipeline, cmd, RedisUnavailable } from './_lib/redis'
+import { pipeline, cmd, RedisUnavailable, describeKvEnv } from './_lib/redis'
 import { K } from './_lib/keys'
 import { isoWeekKey } from './_lib/week'
 import { shopCodeToKilos, kilosForAmountCents } from './_lib/economy'
@@ -135,6 +135,7 @@ export default async function handler(req: Request): Promise<Response> {
   } catch (err) {
     const code = err instanceof RedisUnavailable ? 'kv' : 'unknown'
     console.error('kofi: fallo al escribir', code, kofi_transaction_id)
+    if (code === 'kv') console.error('kofi: estado de kv', JSON.stringify(describeKvEnv()))
     // Soltamos la marca de dedupe: si no, el reintento de Ko-fi se descarta
     // como duplicado y esos kilos se pierden para siempre.
     if (claimedDedupe) await cmd('DEL', K.dedupe(kofi_transaction_id)).catch(() => {})

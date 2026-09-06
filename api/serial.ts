@@ -9,7 +9,7 @@
  * se puede verificar después. Es una marca, y alcanza para que la tarjeta de
  * cada persona sea distinta de la de todas las demás.
  */
-import { cmd, toInt } from './_lib/redis'
+import { cmd, toInt, describeKvEnv } from './_lib/redis'
 import { K } from './_lib/keys'
 
 export const config = { runtime: 'edge' }
@@ -20,7 +20,7 @@ export default async function handler(req: Request): Promise<Response> {
     const serial = toInt(await cmd('INCR', K.stickerSerial))
     return Response.json({ serial }, { headers: { 'Cache-Control': 'no-store' } })
   } catch {
-    console.error('serial: kv no disponible')
+    console.error('serial: kv no disponible', JSON.stringify(describeKvEnv()))
     // Sin número antes que un número inventado: la tarjeta sale sin la línea.
     return Response.json({ serial: null }, { status: 200, headers: { 'Cache-Control': 'no-store' } })
   }
