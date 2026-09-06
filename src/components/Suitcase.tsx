@@ -12,6 +12,9 @@ import { useId, useMemo } from 'react'
  */
 const CAVITY = { x: 246, y: 338, w: 536, h: 418, r: 62 }
 
+/** Amplitud máxima de las dos ondas. Define cuánto hay que hundir el nivel. */
+const MAX_AMPLITUDE = 17
+
 /** Superficie de la onda: una sinusoide, más ancha que el SVG para poder correrla. */
 function wavePath(amplitude: number, wavelength: number, phase: number): string {
   const startX = -512
@@ -38,13 +41,21 @@ export interface SuitcaseProps {
 export function Suitcase({ ratio, overweight = false, breathing = true, className = '' }: SuitcaseProps) {
   const uid = useId().replace(/:/g, '')
   const back = useMemo(() => wavePath(13, 340, 0), [])
-  const front = useMemo(() => wavePath(17, 260, Math.PI * 0.6), [])
+  const front = useMemo(() => wavePath(MAX_AMPLITUDE, 260, Math.PI * 0.6), [])
 
   // Pasada la meta el nivel ya no dice nada: la valija está llena y lo que
   // sobra se va por los costados y por abajo.
   const clamped = Math.max(0, Math.min(1, ratio))
-  const level = CAVITY.h * (1 - clamped)
-  const glow = 0.3 + Math.min(1, clamped) * 0.85 + (overweight ? 0.35 : 0)
+
+  // El recorrido incluye la amplitud de la onda: si no, en cero la superficie
+  // queda justo sobre el borde de abajo y solo asoman las crestas, que contra
+  // las esquinas redondeadas se leen como dos manchas sueltas en vez de un
+  // nivel. Con este offset, en cero no se ve nada.
+  const level = (CAVITY.h + MAX_AMPLITUDE) * (1 - clamped)
+
+  // Y la onda se aplana cuando hay poco líquido: una lámina fina tiene que
+  // leerse como una línea que cruza todo el ancho, no como olas.
+  const calm = Math.min(1, clamped * 4)
 
   return (
     <div
@@ -56,7 +67,6 @@ export function Suitcase({ ratio, overweight = false, breathing = true, classNam
       ]
         .filter(Boolean)
         .join(' ')}
-      style={{ ['--glow' as string]: glow.toFixed(2) }}
     >
       <svg className="suitcase__fill" viewBox="0 0 1024 1024" aria-hidden="true">
         <defs>
@@ -66,8 +76,10 @@ export function Suitcase({ ratio, overweight = false, breathing = true, classNam
         </defs>
         <g clipPath={`url(#cavity-${uid})`}>
           <g className="wave-level" style={{ transform: `translateY(${level.toFixed(1)}px)` }}>
-            <path className="wave wave--back" d={back} fill="var(--electric)" opacity="0.55" />
-            <path className="wave wave--front" d={front} fill="var(--mint)" opacity="0.8" />
+            <g className="wave-calm" style={{ transform: `scaleY(${calm.toFixed(3)})`, transformOrigin: `0 ${CAVITY.y}px` }}>
+              <path className="wave wave--back" d={back} fill="var(--electric)" opacity="0.55" />
+              <path className="wave wave--front" d={front} fill="var(--mint)" opacity="0.8" />
+            </g>
           </g>
         </g>
       </svg>

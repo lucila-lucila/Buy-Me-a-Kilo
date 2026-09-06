@@ -6,6 +6,7 @@ export function Footer() {
       {copy.footer.lines.map((line) => (
         <div key={line}>{line}</div>
       ))}
+      <div className="footer__signature">{copy.footer.signature}</div>
     </footer>
   )
 }

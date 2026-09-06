@@ -40,6 +40,8 @@ export const copy = {
 
   footer: {
     lines: ['No account. No email. No newsletter.', 'You will never hear from me again.'],
+    /** Una línea más chica y más tibia, en el mismo registro seco. */
+    signature: 'made by hand, in the dark, at an hour that was not reasonable.',
   },
 
   open: {

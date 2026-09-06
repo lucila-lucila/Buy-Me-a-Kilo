@@ -82,12 +82,32 @@ img {
 
 /* ---------------------------------------------------------------- layout -- */
 
+/* Sin z-index: un contexto de apilado acá aislaría el mix-blend-mode de la
+   valija y de los stickers, y volverían a dibujarse como cuadrados negros. El
+   fondo y el grano van detrás con z-index negativo, no con esta capa adelante. */
 .page {
   max-width: var(--page);
   margin-inline: auto;
   padding: clamp(0.6rem, 2.5vw, 1.5rem) clamp(1rem, 5vw, 1.5rem) 3rem;
   position: relative;
-  z-index: 1;
+}
+
+/* El único gradiente de la página. Un resplandor detrás de la valija que se
+   apaga hacia abajo, sin viñeta en las esquinas y sin nada en el resto. */
+.glow {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: min(120vh, 900px);
+  z-index: -2;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      120% 70% at 50% 26%,
+      rgba(255, 79, 163, calc(0.30 * var(--glow, 0.35))) 0%,
+      rgba(59, 123, 255, calc(0.22 * var(--glow, 0.35))) 38%,
+      rgba(20, 9, 28, 0) 72%
+    );
+  transition: opacity 900ms ease;
 }
 
 /* La primera pantalla: valija, contador, copy y los cuatro tiers. Si hay que
@@ -138,32 +158,14 @@ img {
 
 /* -------------------------------------------------------------- suitcase -- */
 
+/* Sin fondo propio y sin isolate: el backdrop del screen es el de la página,
+   que es opaco y ya trae el resplandor detrás. Encerrarlo acá lo convertía en
+   una viñeta del tamaño de la caja de la ilustración. */
 .suitcase {
   position: relative;
   width: min(52vw, 31svh, 300px);
   aspect-ratio: 1;
   flex: none;
-  /* mix-blend-mode necesita un backdrop opaco: sobre uno transparente el negro
-     de la ilustracion se compone tal cual y aparece un cuadrado. isolate acota
-     la mezcla a esta caja, y el fondo le da con que mezclar. */
-  isolation: isolate;
-  background: var(--void);
-}
-
-/* El único gradiente de la página. Crece cuando el contador sube. */
-.suitcase::before {
-  content: '';
-  position: absolute;
-  inset: -45%;
-  z-index: 0;
-  pointer-events: none;
-  background: radial-gradient(
-    circle at 50% 55%,
-    rgba(255, 79, 163, calc(0.5 * var(--glow))) 0%,
-    rgba(59, 123, 255, calc(0.34 * var(--glow))) 32%,
-    rgba(20, 9, 28, 0) 68%
-  );
-  transition: opacity 900ms ease;
 }
 
 .suitcase__fill,
@@ -181,7 +183,12 @@ img {
   z-index: 2;
 }
 
-.suitcase--breathing {
+/* La respiración va en cada capa y no en el contenedor: un transform animado en
+   el contenedor crea un contexto de apilado, y eso aísla el mix-blend-mode de la
+   carcasa, que vuelve a dibujarse como un cuadrado negro. */
+.suitcase--breathing .suitcase__fill,
+.suitcase--breathing .suitcase__shell,
+.suitcase--breathing .spill {
   animation: breathe 6.5s ease-in-out infinite;
 }
 
@@ -195,8 +202,11 @@ img {
   }
 }
 
-/* Cuando la semana pasa la meta la valija no se frena en 100%: se deforma. */
-.suitcase--overweight {
+/* Cuando la semana pasa la meta la valija no se frena en 100%: se deforma.
+   Misma razón que arriba para aplicarlo por capa. */
+.suitcase--overweight .suitcase__fill,
+.suitcase--overweight .suitcase__shell,
+.suitcase--overweight .spill {
   animation: strain 1.6s ease-in-out infinite;
 }
 
@@ -347,28 +357,36 @@ img {
 
 /* ----------------------------------------------------------------- tiers -- */
 
+/* Los cuatro siempre visibles y del mismo tamaño. El de tres kilos se destaca
+   por tratamiento —borde y glow— y no por ocupar más espacio: así la escalera se
+   compara de un vistazo, que es lo que hace que alguien suba un escalón. */
 .tiers {
   display: grid;
   width: 100%;
   gap: var(--gap);
-  grid-template-columns: 1fr 1fr;
-  grid-template-areas:
-    'three three'
-    'one carry'
-    'over over';
+  grid-template-columns: 1fr;
+  align-items: stretch;
   margin-top: 0.25rem;
 }
 
+@media (min-width: 620px) {
+  .tiers {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
 .tier {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 0.1rem;
-  padding: 0.55rem 0.8rem;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas:
+    'label label'
+    'note kilos';
+  align-items: end;
+  gap: 0.15rem 0.6rem;
+  padding: 0.7rem 0.9rem;
   border: 1px solid var(--hairline);
+  border-radius: 16px;
   background: rgba(255, 246, 236, 0.03);
-  text-align: left;
   text-decoration: none;
   transition:
     border-color 180ms ease,
@@ -382,46 +400,47 @@ img {
 }
 
 .tier__label {
+  grid-area: label;
   font-family: var(--display);
   font-weight: 400;
-  line-height: 1;
-  font-size: 1.05rem;
+  line-height: 1.05;
+  font-size: clamp(1.05rem, 4.4vw, 1.3rem);
 }
 
 .tier__note {
+  grid-area: note;
   font-size: 0.75rem;
+  line-height: 1.25;
   color: var(--paper-faint);
-  line-height: 1.2;
 }
 
-/* Cada tier tiene su propia forma y su propio color. Nada de cuatro tarjetas
-   idénticas con la misma sombra gris. */
-.tier--three {
-  grid-area: three;
-  padding: 0.85rem 1rem;
-  border-radius: 22px;
-  border-color: rgba(255, 79, 163, 0.55);
-  background: linear-gradient(rgba(255, 79, 163, 0.16), rgba(255, 79, 163, 0.05));
-  box-shadow: 0 0 34px rgba(255, 79, 163, 0.22);
-}
-
-.tier--three .tier__label {
-  font-size: clamp(1.4rem, 6.2vw, 2.1rem);
-}
-
-.tier--three .tier__note {
-  font-size: 0.85rem;
+/* El dato ancla: lo segundo más grande de la ficha, después del nombre. */
+.tier__kilos {
+  grid-area: kilos;
+  justify-self: end;
+  font-family: var(--display);
+  font-size: clamp(0.95rem, 3.6vw, 1.1rem);
+  line-height: 1;
   color: var(--paper-dim);
+  white-space: nowrap;
+}
+
+.tier--three {
+  border-color: var(--bubblegum);
+  background: linear-gradient(rgba(255, 79, 163, 0.14), rgba(255, 79, 163, 0.05));
+  box-shadow: 0 0 26px rgba(255, 79, 163, 0.2);
 }
 
 .tier--three:hover {
-  border-color: var(--bubblegum);
-  background: linear-gradient(rgba(255, 79, 163, 0.24), rgba(255, 79, 163, 0.08));
+  background: linear-gradient(rgba(255, 79, 163, 0.22), rgba(255, 79, 163, 0.08));
+}
+
+.tier--three .tier__note,
+.tier--three .tier__kilos {
+  color: var(--paper-dim);
 }
 
 .tier--one {
-  grid-area: one;
-  border-radius: 14px 14px 4px 14px;
   border-color: rgba(123, 240, 200, 0.4);
 }
 
@@ -430,8 +449,6 @@ img {
 }
 
 .tier--carry {
-  grid-area: carry;
-  border-radius: 4px 14px 14px 14px;
   border-color: rgba(59, 123, 255, 0.45);
 }
 
@@ -440,44 +457,21 @@ img {
 }
 
 .tier--over {
-  grid-area: over;
-  display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: baseline;
-  column-gap: 0.6rem;
-  row-gap: 0.05rem;
-  padding: 0.5rem 1rem;
-  border-radius: 999px;
-  border-style: dashed;
-  border-color: rgba(255, 162, 76, 0.5);
-}
-
-.tier--over .tier__label {
-  font-size: 1rem;
-}
-
-.tier--over .tier__note {
-  grid-column: 1 / -1;
-}
-
-.tier--over .tier__kilos {
-  grid-column: 2;
-  grid-row: 1;
+  border-color: rgba(255, 162, 76, 0.45);
 }
 
 .tier--over:hover {
   border-color: var(--sherbet);
 }
 
-.tier__kilos {
-  margin-left: auto;
-  font-family: var(--display);
-  font-size: 0.9rem;
-  color: var(--paper-faint);
+/* Tier sin item de Ko-fi cargado: se ve, no se puede clickear. */
+.tier--off {
+  opacity: 0.45;
+  cursor: default;
 }
 
-.tier--three .tier__kilos {
-  display: none;
+.tier--off:hover {
+  transform: none;
 }
 
 .tiers__note {
@@ -488,71 +482,98 @@ img {
   text-align: center;
 }
 
-@media (min-width: 560px) {
-  .tier--three .tier__label {
-    font-size: 2.4rem;
-  }
+/* ------------------------------------------------------------- carrusel -- */
 
-  .tier {
-    padding: 0.85rem 1.1rem;
-  }
-}
-
-/* --------------------------------------------------------- sticker grid -- */
-
-.grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: clamp(0.35rem, 1.8vw, 0.75rem);
-}
-
-.grid__cell {
-  position: relative;
-  aspect-ratio: 1;
-  border-radius: 12px;
+/* La colección desfilando. Los bordes se desvanecen para que los stickers
+   entren y salgan en vez de cortarse contra el canto. */
+/* La velocidad lineal es la misma en todos los anchos. En mobile las fichas son
+   más chicas para que entren más, y la duración se ajusta en la misma
+   proporción: un ciclo recorre 12 x (ficha + gap), y a 37 px/s eso da los
+   segundos de abajo. Si cambiás el tamaño, recalculá la duración. */
+.marquee {
+  --item: 104px;
+  --gap-item: 12px;
+  --cycle: 37s;
   overflow: hidden;
-  background: var(--cell);
-  border: 1px solid var(--hairline);
-  isolation: isolate;
+  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 9%, #000 91%, transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0, #000 9%, #000 91%, transparent 100%);
 }
 
-.grid__cell img {
+.marquee__track {
+  display: flex;
+  width: max-content;
+  /* El desplazamiento es exactamente una copia de la lista, así que al terminar
+     el cuadro es idéntico al inicial y el loop no tiene costura. */
+  animation: marquee var(--cycle) linear infinite;
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.marquee:hover .marquee__track,
+.marquee:focus-within .marquee__track {
+  animation-play-state: paused;
+}
+
+.marquee__row {
+  display: flex;
+  gap: var(--gap-item);
+  margin: 0;
+  padding: 0 calc(var(--gap-item) / 2);
+  list-style: none;
+}
+
+.marquee__item {
+  flex: none;
+  width: var(--item);
+  height: var(--item);
+  /* La cinta lleva un transform animado, así que aísla el screen de sus hijos.
+     Acá el fondo de la página ya es plano, así que una baldosa opaca del color
+     del fondo es invisible y le devuelve al blend con qué mezclar. */
+  isolation: isolate;
+  background: var(--void);
+}
+
+.marquee__item img {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  /* Apagados: se ven los doce, no se ve cuál te va a tocar. Van teñidos hacia
-     el violeta del fondo, no a gris. */
-  filter: grayscale(0.92) brightness(0.5) sepia(0.35) hue-rotate(215deg) saturate(1.6);
-  transition: filter 400ms ease;
 }
 
-/* El que ya tenés se ve encendido. */
-.grid__cell--owned img {
-  filter: none;
+.marquee:focus-visible {
+  outline: 3px solid var(--mint);
+  outline-offset: 6px;
+  border-radius: 8px;
 }
 
-.grid__cell:hover img {
-  filter: grayscale(0.7) brightness(0.72) sepia(0.25) hue-rotate(215deg) saturate(1.4);
+/* Sin movimiento: una fila que se arrastra a mano, sin la copia duplicada. */
+@media (min-width: 560px) {
+  .marquee {
+    --item: 140px;
+    --gap-item: 16px;
+    --cycle: 50s;
+  }
 }
 
-.grid__cell--owned {
-  border-color: var(--hairline-strong);
-}
+@media (prefers-reduced-motion: reduce) {
+  .marquee {
+    overflow-x: auto;
+    scrollbar-width: thin;
+  }
 
-.grid__count {
-  position: absolute;
-  right: 4px;
-  bottom: 2px;
-  font-family: var(--display);
-  font-size: 0.7rem;
-  color: var(--paper-dim);
-}
+  .marquee__track {
+    animation: none;
+  }
 
-.grid__note {
-  margin: 0.75rem 0 0;
-  text-align: center;
-  font-size: 0.85rem;
-  color: var(--paper-faint);
+  .marquee__row[aria-hidden] {
+    display: none;
+  }
 }
 
 /* -------------------------------------------------------------- privacy -- */
@@ -577,12 +598,14 @@ img {
 
 /* ----------------------------------------------------------------- grano -- */
 
+/* Detrás del contenido y delante del resplandor: rompe el banding del gradiente
+   sin pasar nunca por encima del texto ni del número de kilos. */
 .grain {
   position: fixed;
   inset: 0;
-  z-index: 50;
+  z-index: -1;
   pointer-events: none;
-  opacity: 0.055;
+  opacity: 0.09;
   mix-blend-mode: overlay;
 }
 
@@ -758,8 +781,12 @@ img {
     scroll-behavior: auto !important;
   }
 
-  .suitcase--breathing,
-  .suitcase--overweight,
+  .suitcase--breathing .suitcase__fill,
+  .suitcase--breathing .suitcase__shell,
+  .suitcase--breathing .spill,
+  .suitcase--overweight .suitcase__fill,
+  .suitcase--overweight .suitcase__shell,
+  .suitcase--overweight .spill,
   .goal--over .goal__fill,
   .bag--shaking {
     animation: none;
@@ -771,6 +798,12 @@ img {
 /* El nivel sube con un easing suave; las dos ondas corren desfasadas para que
    la superficie parezca líquido y no una barra. */
 .wave-level {
+  transition: transform 1200ms cubic-bezier(0.22, 0.85, 0.25, 1);
+}
+
+/* Aplana la onda cuando hay poco líquido, para que se lea como una lámina que
+   cruza todo el ancho y no como olas sueltas contra las esquinas redondeadas. */
+.wave-calm {
   transition: transform 1200ms cubic-bezier(0.22, 0.85, 0.25, 1);
 }
 
@@ -891,17 +924,44 @@ img {
 
 /* En pantallas bajas la valija cede espacio antes que los tiers: el chiste
    completo y los cuatro botones tienen que entrar en la primera pantalla. */
-@media (max-height: 680px) {
+/* En pantallas bajas la valija y el copy ceden espacio antes que los tiers: el
+   chiste completo y los cuatro botones tienen que entrar en la primera pantalla. */
+@media (max-height: 700px) {
+  .hero {
+    gap: 0.35rem;
+  }
+
   .suitcase {
-    width: min(46vw, 26svh, 300px);
+    width: min(42vw, 23svh, 300px);
   }
 
   .hero__lines {
-    font-size: 0.84rem;
+    font-size: 0.82rem;
+    line-height: 1.25;
   }
 
-  .tier--three {
-    padding: 0.7rem 0.9rem;
+  .tier {
+    padding: 0.45rem 0.8rem;
+  }
+
+  .tier__note {
+    font-size: 0.72rem;
+  }
+
+  :root {
+    --gap: 0.55rem;
+  }
+}
+
+/* Mobile en horizontal: la altura es el recurso escaso, así que los tiers pasan
+   a dos columnas y la valija se achica. */
+@media (max-height: 520px) and (min-width: 560px) {
+  .tiers {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .suitcase {
+    width: min(26vh, 150px);
   }
 }
 
@@ -962,4 +1022,11 @@ img {
   font-family: var(--display);
   color: var(--paper-dim);
   letter-spacing: 0.01em;
+}
+
+.footer__signature {
+  margin-top: 0.6rem;
+  font-size: 0.72rem;
+  color: var(--paper-faint);
+  opacity: 0.85;
 }
