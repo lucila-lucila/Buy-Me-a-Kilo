@@ -100,12 +100,16 @@ img {
   height: min(120vh, 900px);
   z-index: -2;
   pointer-events: none;
+  /* El tamaño va en unidades propias y no en porcentaje del viewport: contra
+     una pantalla ancha un radial del 120% se estira hasta desaparecer, y el
+     hero queda flotando en negro. Así el charco de luz mantiene su tamaño
+     relativo a la columna de contenido en todos los anchos. */
   background:
     radial-gradient(
-      120% 70% at 50% 26%,
-      rgba(255, 79, 163, calc(0.30 * var(--glow, 0.35))) 0%,
-      rgba(59, 123, 255, calc(0.22 * var(--glow, 0.35))) 38%,
-      rgba(20, 9, 28, 0) 72%
+      clamp(340px, 62vw, 760px) clamp(260px, 46vw, 560px) at 50% 24%,
+      rgba(255, 79, 163, calc(0.34 * var(--glow, 0.35))) 0%,
+      rgba(59, 123, 255, calc(0.24 * var(--glow, 0.35))) 40%,
+      rgba(20, 9, 28, 0) 74%
     );
   transition: opacity 900ms ease;
 }
@@ -122,7 +126,7 @@ img {
 .hero__title {
   font-family: var(--display);
   font-weight: 400;
-  font-size: clamp(1.35rem, 6.5vw, 2.4rem);
+  font-size: var(--fs-title);
   line-height: 1;
   letter-spacing: -0.01em;
   text-shadow: 0 0 28px rgba(255, 79, 163, 0.45);
@@ -131,7 +135,7 @@ img {
 .hero__lines {
   margin: 0;
   text-align: center;
-  font-size: clamp(0.86rem, 3.5vw, 1.02rem);
+  font-size: var(--fs-lead);
   line-height: 1.3;
   color: var(--paper-dim);
   text-wrap: balance;
@@ -150,7 +154,7 @@ img {
 .section__heading {
   font-family: var(--display);
   font-weight: 400;
-  font-size: clamp(1.15rem, 5vw, 1.6rem);
+  font-size: var(--fs-heading);
   line-height: 1.1;
   margin: 0 0 1rem;
   text-align: center;
@@ -249,7 +253,7 @@ img {
   align-items: baseline;
   gap: 0.3rem;
   font-family: var(--display);
-  font-size: clamp(2.2rem, 12vw, 5rem);
+  font-size: var(--fs-display);
   line-height: 0.9;
   letter-spacing: -0.02em;
   /* Como filtro y no como text-shadow: los digitos van en columnas con overflow
@@ -263,7 +267,7 @@ img {
 .counter__unit {
   font-family: var(--body);
   font-weight: 500;
-  font-size: clamp(0.85rem, 3.4vw, 1rem);
+  font-size: var(--fs-small);
   letter-spacing: 0.02em;
   color: var(--paper-dim);
 }
@@ -342,7 +346,7 @@ img {
 .goal__meta {
   display: flex;
   justify-content: space-between;
-  font-size: 0.8rem;
+  font-size: var(--fs-small);
   color: var(--paper-faint);
   letter-spacing: 0.01em;
 }
@@ -351,7 +355,7 @@ img {
   color: var(--bubblegum);
   font-weight: 500;
   text-align: center;
-  font-size: 0.9rem;
+  font-size: var(--fs-small);
   margin: 0;
 }
 
@@ -367,12 +371,6 @@ img {
   grid-template-columns: 1fr;
   align-items: stretch;
   margin-top: 0.25rem;
-}
-
-@media (min-width: 620px) {
-  .tiers {
-    grid-template-columns: 1fr 1fr;
-  }
 }
 
 .tier {
@@ -404,12 +402,12 @@ img {
   font-family: var(--display);
   font-weight: 400;
   line-height: 1.05;
-  font-size: clamp(1.05rem, 4.4vw, 1.3rem);
+  font-size: var(--fs-heading);
 }
 
 .tier__note {
   grid-area: note;
-  font-size: 0.75rem;
+  font-size: var(--fs-micro);
   line-height: 1.25;
   color: var(--paper-faint);
 }
@@ -419,7 +417,7 @@ img {
   grid-area: kilos;
   justify-self: end;
   font-family: var(--display);
-  font-size: clamp(0.95rem, 3.6vw, 1.1rem);
+  font-size: var(--fs-body);
   line-height: 1;
   color: var(--paper-dim);
   white-space: nowrap;
@@ -477,7 +475,7 @@ img {
 .tiers__note {
   grid-column: 1 / -1;
   margin: 0.15rem 0 0;
-  font-size: 0.75rem;
+  font-size: var(--fs-micro);
   color: var(--paper-faint);
   text-align: center;
 }
@@ -495,8 +493,10 @@ img {
   --gap-item: 12px;
   --cycle: 37s;
   overflow: hidden;
-  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 9%, #000 91%, transparent 100%);
-  mask-image: linear-gradient(to right, transparent 0, #000 9%, #000 91%, transparent 100%);
+  /* Los stickers entran y salen desvaneciéndose contra el fondo en vez de
+     cortarse contra el canto. */
+  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 18%, #000 82%, transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0, #000 18%, #000 82%, transparent 100%);
 }
 
 .marquee__track {
@@ -544,6 +544,9 @@ img {
   width: 100%;
   height: 100%;
   object-fit: contain;
+  /* En gris: se ve que los doce existen y qué forma tienen, pero no de qué
+     color son. El color es parte de lo que no sabés hasta que te toca. */
+  filter: grayscale(1) brightness(0.95) contrast(1.05);
 }
 
 .marquee:focus-visible {
@@ -553,13 +556,6 @@ img {
 }
 
 /* Sin movimiento: una fila que se arrastra a mano, sin la copia duplicada. */
-@media (min-width: 560px) {
-  .marquee {
-    --item: 140px;
-    --gap-item: 16px;
-    --cycle: 50s;
-  }
-}
 
 @media (prefers-reduced-motion: reduce) {
   .marquee {
@@ -581,7 +577,7 @@ img {
 .privacy {
   margin: clamp(2rem, 8vw, 3rem) 0 0;
   text-align: center;
-  font-size: 0.95rem;
+  font-size: var(--fs-body);
   color: var(--paper-dim);
   line-height: 1.5;
 }
@@ -591,7 +587,7 @@ img {
   padding-top: 1.25rem;
   border-top: 1px solid var(--hairline);
   text-align: center;
-  font-size: 0.8rem;
+  font-size: var(--fs-small);
   color: var(--paper-faint);
   line-height: 1.6;
 }
@@ -623,6 +619,10 @@ img {
   margin-inline: auto;
   position: relative;
   z-index: 1;
+  /* Las partículas del estallido salen bastante más allá del centro y a 360px
+     se pasaban del viewport. `clip` las recorta sin crear un contenedor de
+     scroll, que es lo que haría `hidden`. */
+  overflow-x: clip;
 }
 
 .stage {
@@ -710,7 +710,7 @@ img {
 
 .open__line {
   font-family: var(--display);
-  font-size: clamp(1.1rem, 5vw, 1.5rem);
+  font-size: var(--fs-heading);
   text-align: center;
   margin: 0;
   min-height: 1.2em;
@@ -718,7 +718,7 @@ img {
 
 .open__sub {
   margin: 0;
-  font-size: 0.9rem;
+  font-size: var(--fs-small);
   color: var(--paper-faint);
   text-align: center;
 }
@@ -736,7 +736,7 @@ img {
   border-radius: 999px;
   border: 1px solid var(--hairline-strong);
   font-weight: 500;
-  font-size: 0.95rem;
+  font-size: var(--fs-body);
   transition:
     background 180ms ease,
     border-color 180ms ease;
@@ -763,10 +763,73 @@ img {
 }
 
 .open__link {
-  font-size: 0.85rem;
+  font-size: var(--fs-small);
   color: var(--paper-faint);
   text-decoration: underline;
   text-underline-offset: 3px;
+}
+
+
+/* ==========================================================================
+   Breakpoints. Solo tres, y cada uno responde a una pregunta distinta:
+
+   1. ANCHO (620px)   ¿entran dos columnas de tiers al lado?
+   2. ALTURA (700px)  ¿hay que comprimir el hero para que los cuatro tiers
+                      entren antes del fold?
+   3. HORIZONTAL      pantalla baja pero ancha: la altura es el recurso escaso.
+
+   La tipografía no aparece acá: la escala de tokens.css es fluida y cubre todo
+   el rango de 360 a 1440 sin saltos.
+   ========================================================================== */
+
+@media (min-width: 620px) {
+  .tiers {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .marquee {
+    --item: 140px;
+    --gap-item: 16px;
+    --cycle: 50s;
+  }
+}
+
+/* Los valores van atados a svh en vez de fijos: la compresión es continua de
+   568 a 700 de alto, así que no hace falta un segundo escalón para el SE. */
+@media (max-height: 700px) {
+  .hero {
+    gap: clamp(0.15rem, 0.9svh, 0.6rem);
+  }
+
+  .suitcase {
+    width: min(40vw, 21svh, 300px);
+  }
+
+  .hero__lines {
+    line-height: 1.2;
+  }
+
+  .tier {
+    padding: clamp(0.3rem, 0.9svh, 0.6rem) 0.8rem;
+  }
+
+  :root {
+    --gap: clamp(0.35rem, 1.1svh, 0.7rem);
+  }
+
+  .tiers__note {
+    margin-top: 0;
+  }
+}
+
+@media (max-height: 560px) and (min-width: 560px) {
+  .tiers {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .suitcase {
+    width: min(26vh, 150px);
+  }
 }
 
 /* --------------------------------------------------- reduced motion ------ */
@@ -926,44 +989,9 @@ img {
    completo y los cuatro botones tienen que entrar en la primera pantalla. */
 /* En pantallas bajas la valija y el copy ceden espacio antes que los tiers: el
    chiste completo y los cuatro botones tienen que entrar en la primera pantalla. */
-@media (max-height: 700px) {
-  .hero {
-    gap: 0.35rem;
-  }
-
-  .suitcase {
-    width: min(42vw, 23svh, 300px);
-  }
-
-  .hero__lines {
-    font-size: 0.82rem;
-    line-height: 1.25;
-  }
-
-  .tier {
-    padding: 0.45rem 0.8rem;
-  }
-
-  .tier__note {
-    font-size: 0.72rem;
-  }
-
-  :root {
-    --gap: 0.55rem;
-  }
-}
 
 /* Mobile en horizontal: la altura es el recurso escaso, así que los tiers pasan
    a dos columnas y la valija se achica. */
-@media (max-height: 520px) and (min-width: 560px) {
-  .tiers {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .suitcase {
-    width: min(26vh, 150px);
-  }
-}
 
 /* Glow extra de las raras y de la maldita. Va como capa atrás y no como filtro
    sobre la imagen: el filtro quedaría recortado por la máscara del screen. */
@@ -1026,7 +1054,7 @@ img {
 
 .footer__signature {
   margin-top: 0.6rem;
-  font-size: 0.72rem;
+  font-size: var(--fs-micro);
   color: var(--paper-faint);
   opacity: 0.85;
 }

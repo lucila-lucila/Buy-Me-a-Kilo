@@ -173,6 +173,24 @@ sube también con quien entra sin pagar; en el dashboard eso se ve como
 
 Si KV no responde, la tarjeta sale sin la línea. Nunca con un número inventado.
 
+## Responsive
+
+Escala tipográfica fluida en `src/styles/tokens.css`: siete curvas `clamp()`
+interpoladas sobre el mismo rango, de 360px a 1440px. Ningún componente escribe
+su propio `clamp` ni su propio tamaño fijo, así que no hay saltos.
+
+Tres breakpoints, declarados juntos y comentados en `global.css`: uno de ancho
+(620px, los tiers pasan a dos columnas), uno de altura (700px, el hero se
+comprime para que los cuatro tiers entren antes del fold) y uno de horizontal.
+Los valores del de altura van atados a `svh`, así que la compresión es continua
+y no hace falta un escalón aparte para pantallas muy bajas.
+
+`npm run audit:responsive` recorre diez viewports por las dos páginas y verifica
+que no haya scroll horizontal, que los cuatro tiers entren antes del fold donde
+la altura alcanza, que ningún texto se desborde y que el carrusel mantenga la
+velocidad. Necesita Playwright, que a propósito no es dependencia del proyecto:
+`npm i --no-save playwright` antes de correrlo.
+
 ## Assets
 
 Las quince ilustraciones están en `public/`, servidas estáticas. Los `masters/`

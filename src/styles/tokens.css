@@ -14,6 +14,17 @@
   --cell: #1d1126;
   --hairline-strong: rgba(255, 246, 236, 0.28);
 
+  /* Escala tipográfica fluida. Las siete curvas se interpolan sobre el mismo
+     rango, de 360px a 1440px, así que todo crece con la misma pendiente y no
+     hay saltos entre breakpoints. Ningún componente escribe su propio clamp. */
+  --fs-display: clamp(2.2rem, 4.148vw + 1.267rem, 5.0rem);
+  --fs-title: clamp(1.35rem, 1.556vw + 1.000rem, 2.4rem);
+  --fs-heading: clamp(1.15rem, 0.667vw + 1.000rem, 1.6rem);
+  --fs-lead: clamp(0.88rem, 0.252vw + 0.823rem, 1.05rem);
+  --fs-body: clamp(0.9rem, 0.148vw + 0.867rem, 1.0rem);
+  --fs-small: clamp(0.78rem, 0.104vw + 0.757rem, 0.85rem);
+  --fs-micro: clamp(0.72rem, 0.089vw + 0.700rem, 0.78rem);
+
   --display: 'Bagel Fat One', 'Trebuchet MS', system-ui, sans-serif;
   --body: 'Familjen Grotesk', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
 

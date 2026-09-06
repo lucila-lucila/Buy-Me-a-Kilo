@@ -9,6 +9,7 @@
     "build": "tsc -b && vite build && npm run check:leak && npm run check:config",
     "check:leak": "node scripts/check-leak.mjs",
     "check:config": "node scripts/check-config.mjs",
+    "audit:responsive": "node scripts/audit-responsive.mjs",
     "preview": "vite preview",
     "typecheck": "tsc -b --force"
   },
