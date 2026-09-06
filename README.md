@@ -85,6 +85,27 @@ Si agregás una variable de servidor nueva, sumala a `ECONOMY_ENV` en
 le puso prefijo `VITE_`. Las `VITE_VERCEL_*` que inyecta Vercel están excluidas
 a propósito, son públicas por diseño y no tienen nada nuestro adentro.
 
+## Conectar la base
+
+Vercel → Storage → la base de Upstash → Connect, con el prefijo VACÍO, para que
+las variables queden con los nombres canónicos `KV_REST_API_URL` y
+`KV_REST_API_TOKEN`, que es lo que el código lee por acceso estático. Después,
+un deploy nuevo: las env vars solo entran en deploys posteriores a su carga.
+
+Dos trampas que ya nos costaron una tarde:
+
+- Si el proyecto ya tiene esas dos variables, aunque estén vacías, el diálogo de
+  Connect se niega a seguir y ofrece ponerles un prefijo. La salida es borrar las
+  vacías primero, no aceptar el prefijo.
+- Una variable cargada con valor vacío se ve igual que una cargada bien en el
+  panel, y el contador queda en null sin decir por qué. `npm run check:config`
+  ahora lo avisa en el log del build, y `/api/stats` lo marca como `vacía` en
+  `kvEnv.staticAccess`.
+
+Para diagnosticar: `/api/stats?key=<STATS_SECRET>` devuelve `kvEnv` incluso
+cuando la conexión falla, con los nombres que ve la función y si su valor se
+puede leer. Nombres y estados, nunca valores.
+
 ## Ko-fi
 
 1. Creá los cuatro items de la tienda y anotá el `direct_link_code` de cada uno
