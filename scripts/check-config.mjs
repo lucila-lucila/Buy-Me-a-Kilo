@@ -18,7 +18,29 @@ const username = source.match(/export const KOFI_USERNAME = '([^']*)'/)?.[1] ?? 
 /** Env vars que ya no hace nada tener cargadas. Ver DEPRECATED_ENV en economy.ts. */
 const DEPRECATED_ENV = ['EXPECTED_NET_TICKET', 'KOFI_USERNAME']
 
+/**
+ * Una env var que existe pero está vacía es peor que una ausente: aparece
+ * cargada en el panel y no lo está. Pasó con las credenciales de KV, y el
+ * síntoma era el contador en null sin nada que lo explicara.
+ */
+const EMPTY_MATTERS = [
+  'KV_REST_API_URL',
+  'KV_REST_API_TOKEN',
+  'UPSTASH_REDIS_REST_URL',
+  'UPSTASH_REDIS_REST_TOKEN',
+  'STATS_SECRET',
+  'KOFI_VERIFICATION_TOKEN',
+]
+
 const warnings = []
+const empty = EMPTY_MATTERS.filter((k) => process.env[k] === '')
+if (empty.length > 0) {
+  warnings.push(
+    `env vars cargadas con valor VACÍO: ${empty.join(', ')}. ` +
+      'Existen en el panel pero no tienen contenido, así que la función no puede usarlas.',
+  )
+}
+
 const stale = DEPRECATED_ENV.filter((k) => process.env[k] !== undefined && process.env[k] !== '')
 if (stale.length > 0) {
   warnings.push(
