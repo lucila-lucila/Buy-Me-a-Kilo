@@ -139,6 +139,19 @@ cayó la semana y la proyección al ritmo de las últimas tres.
 Sin key válida devuelve 404, no 401: no tiene que notarse que existe. Nada de
 esto se muestra nunca en la página pública.
 
+## El número de serie
+
+Cada revelación pide un número a `/api/serial`, que es un `INCR` sobre un entero
+y no guarda nada sobre quién lo pidió. Va bajo el sticker y en el pie de la
+tarjeta para compartir, que es lo que hace que la de cada persona sea distinta.
+
+No es un certificado: como nadie registra a quién le tocó cuál, después no se
+puede verificar. Es una marca. Y como `/open` es abierta a propósito, el número
+sube también con quien entra sin pagar; en el dashboard eso se ve como
+`stickersHandedOut` contra `contributions`.
+
+Si KV no responde, la tarjeta sale sin la línea. Nunca con un número inventado.
+
 ## Assets
 
 Las quince ilustraciones están en `public/`, servidas estáticas. Los `masters/`

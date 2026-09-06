@@ -10,6 +10,7 @@ import { copy } from '../copy'
 import { pngSrc, type Rarity } from '../config/stickers'
 import { COUNTER_THRESHOLD_KG } from '../config/goals'
 import { siteDomain } from './domain'
+import { formatSerial } from './serial'
 
 const W = 1080
 const H = 1350
@@ -50,6 +51,8 @@ export interface ShareCardInput {
   rarity: Rarity
   /** Total real de kilos, o null si todavía no llegó / no supera el umbral. */
   totalKilos: number | null
+  /** Número de serie, o null si el servidor no lo pudo dar. Nunca uno inventado. */
+  serial: number | null
 }
 
 export async function composeShareCard(input: ShareCardInput): Promise<Blob> {
@@ -96,7 +99,12 @@ export async function composeShareCard(input: ShareCardInput): Promise<Blob> {
 
   ctx.fillStyle = 'rgba(255,246,236,0.62)'
   ctx.font = '500 36px "Familjen Grotesk", sans-serif'
-  ctx.fillText(siteDomain(), W / 2, 1288)
+  // El número de serie es lo único que hace distinta la tarjeta de cada persona.
+  ctx.fillText(
+    input.serial === null ? siteDomain() : `${formatSerial(input.serial)} · ${siteDomain()}`,
+    W / 2,
+    1288,
+  )
 
   return new Promise((resolve, reject) => {
     canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error('sin blob'))), 'image/png')

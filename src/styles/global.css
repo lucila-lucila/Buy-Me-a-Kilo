@@ -955,3 +955,11 @@ img {
 .tier--three.tier--off:hover {
   background: linear-gradient(rgba(255, 79, 163, 0.16), rgba(255, 79, 163, 0.05));
 }
+
+/* El número de serie del sticker. Va al lado de la colección, chico. */
+.open__serial {
+  margin-left: 0.6rem;
+  font-family: var(--display);
+  color: var(--paper-dim);
+  letter-spacing: 0.01em;
+}

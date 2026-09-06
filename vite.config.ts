@@ -18,10 +18,13 @@ const DEV_WEEK = 6
  *   /?over            fuerza OVERWEIGHT (semana por encima de la meta)
  *   /?kg=12           por debajo del umbral: el número grande no se muestra
  *
+ * /api/serial devuelve una serie que arranca en 217 y sube en cada revelación.
+ *
  * El override se lee del Referer, que es la URL de la página que hizo el fetch.
  * Así el cliente no necesita una sola línea de código de desarrollo.
  */
 function mockApi(): Plugin {
+  let devSerial = 216
   return {
     name: 'bmak-mock-api',
     apply: 'serve',
@@ -49,6 +52,14 @@ function mockApi(): Plugin {
           res.setHeader('Content-Type', 'application/json')
           res.setHeader('Cache-Control', 'no-store')
           res.end(JSON.stringify({ total, week }))
+          return
+        }
+
+        if (url.pathname === '/api/serial') {
+          devSerial += 1
+          res.setHeader('Content-Type', 'application/json')
+          res.setHeader('Cache-Control', 'no-store')
+          res.end(JSON.stringify({ serial: devSerial }))
           return
         }
 

@@ -4,6 +4,7 @@ import { copy } from '../../copy'
 import { rollSticker } from '../../lib/roll'
 import { addToCollection, distinctCount, readCollection } from '../../lib/collection'
 import { downloadSticker } from '../../lib/shareCard'
+import { claimSerial, formatSerial } from '../../lib/serial'
 import { useKilos } from '../../lib/useKilos'
 import { useReducedMotion } from '../../lib/reducedMotion'
 import { COUNTER_THRESHOLD_KG, WEEKLY_GOAL_KG } from '../../config/goals'
@@ -56,12 +57,14 @@ export default function OpenScene() {
   }
   const saved = useRef(false)
   const [result, setResult] = useState(rolled.current)
+  const [serial, setSerial] = useState<number | null>(null)
 
   useEffect(() => {
     if (saved.current) return
     saved.current = true
     const { duplicate } = addToCollection(rolled.current!.sticker.id)
     setResult({ sticker: rolled.current!.sticker, duplicate, owned: distinctCount(readCollection()) })
+    void claimSerial(rolled.current!.sticker.id).then(setSerial)
   }, [])
 
   useEffect(() => {
@@ -134,10 +137,17 @@ export default function OpenScene() {
 
       {revealed && (
         <>
-          <p className="open__sub">{copy.open.collection(owned)}</p>
+          <p className="open__sub">
+            {copy.open.collection(owned)}
+            {serial !== null && <> · <span className="open__serial">{formatSerial(serial)}</span></>}
+          </p>
 
           <div className="actions">
-            <ShareButton sticker={sticker} totalKilos={total !== null && total >= COUNTER_THRESHOLD_KG ? total : null} />
+            <ShareButton
+              sticker={sticker}
+              totalKilos={total !== null && total >= COUNTER_THRESHOLD_KG ? total : null}
+              serial={serial}
+            />
             <button className="btn" onClick={() => void downloadSticker(sticker.id)}>
               {copy.open.download}
             </button>

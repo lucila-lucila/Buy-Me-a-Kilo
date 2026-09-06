@@ -39,13 +39,10 @@ function TierButton({ tier }: { tier: Tier }) {
   }
 
   return (
-    <a
-      className={`tier ${AREA[tier.id]}`}
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      data-tier={tier.id}
-    >
+    // Navega en la misma pestaña a propósito: se va a Ko-fi, se paga, y Ko-fi
+    // devuelve a /open. En una pestaña nueva la persona termina el flujo en una
+    // ventana y deja la landing vieja abierta atrás.
+    <a className={`tier ${AREA[tier.id]}`} href={href} data-tier={tier.id}>
       {inside}
     </a>
   )

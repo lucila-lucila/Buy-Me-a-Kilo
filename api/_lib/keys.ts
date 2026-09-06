@@ -13,5 +13,7 @@ export const K = {
   contribTotal: 'count_contrib_total',
   contribWeek: (w: string) => `count_contrib_${w}`,
   shareGenerated: 'share_generated',
+  /** Serie de los stickers entregados. Un entero que solo sube. */
+  stickerSerial: 'sticker_serial',
   dedupe: (txid: string) => `tx:${txid}`,
 } as const

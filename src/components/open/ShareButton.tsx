@@ -7,7 +7,15 @@ import type { Sticker } from '../../config/stickers'
  * Sin audiencia propia, cada persona que compra es la distribución. Esto es lo
  * más importante de la página.
  */
-export function ShareButton({ sticker, totalKilos }: { sticker: Sticker; totalKilos: number | null }) {
+export function ShareButton({
+  sticker,
+  totalKilos,
+  serial,
+}: {
+  sticker: Sticker
+  totalKilos: number | null
+  serial: number | null
+}) {
   const [state, setState] = useState<'idle' | 'busy' | 'done'>('idle')
 
   const onClick = async () => {
@@ -17,6 +25,7 @@ export function ShareButton({ sticker, totalKilos }: { sticker: Sticker; totalKi
         stickerId: sticker.id,
         rarity: sticker.rarity,
         totalKilos,
+        serial,
       })
       setState(outcome === 'cancelled' ? 'idle' : 'done')
     } catch {

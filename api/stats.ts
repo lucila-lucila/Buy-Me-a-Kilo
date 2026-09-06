@@ -5,7 +5,7 @@
  * notarse que el endpoint existe. Nada de lo que sale de acá se muestra nunca
  * en la página pública.
  */
-import { pipeline, toInt } from './_lib/redis'
+import { pipeline, toInt, describeKvEnv } from './_lib/redis'
 import { K } from './_lib/keys'
 import { isoWeekKey, previousWeekKeys } from './_lib/week'
 import { TIERS, type TierId } from '../src/config/tiers'
@@ -68,6 +68,7 @@ export default async function handler(req: Request): Promise<Response> {
     ['GET', K.contribWeek(week)],
     ['GET', K.grossOther],
     ['GET', K.shareGenerated],
+    ['GET', K.stickerSerial],
   ]
   for (const t of TIERS) reads.push(['GET', K.tierTotal(t.kilos)], ['GET', K.tierWeek(t.kilos, week)])
   for (const w of prev) reads.push(['GET', K.grossWeek(w)], ['GET', K.contribWeek(w)], ['GET', K.weekKilos(w)])
@@ -75,8 +76,17 @@ export default async function handler(req: Request): Promise<Response> {
   let raw: unknown[]
   try {
     raw = await pipeline(reads)
-  } catch {
-    return Response.json({ error: 'kv unavailable' }, { status: 503, headers: { 'Cache-Control': 'no-store' } })
+  } catch (err) {
+    // Diagnóstico: qué variables de KV ve la función. Solo nombres, nunca
+    // valores. Es lo único que hace falta para saber por qué el contador da null.
+    return Response.json(
+      {
+        error: 'kv unavailable',
+        reason: err instanceof Error ? err.message : 'unknown',
+        kvEnv: describeKvEnv(),
+      },
+      { status: 503, headers: { 'Cache-Control': 'no-store' } },
+    )
   }
 
   let i = 0
@@ -88,6 +98,7 @@ export default async function handler(req: Request): Promise<Response> {
   const contribWeek = toInt(raw[i++])
   const otherCurrency = toInt(raw[i++])
   const shareGenerated = toInt(raw[i++])
+  const stickersHandedOut = toInt(raw[i++])
 
   const tierTotals = {} as Record<TierId, number>
   const tierWeeks = {} as Record<TierId, number>
@@ -156,6 +167,7 @@ export default async function handler(req: Request): Promise<Response> {
 
       // Echo de la configuración, para verificar que las env vars llegaron.
       config: {
+        kv: describeKvEnv(),
         kofiPct: KOFI_PCT,
         paypalPct: PAYPAL_PCT,
         paypalFixedUsd: usd(PAYPAL_FIXED_CENTS),
@@ -178,6 +190,9 @@ export default async function handler(req: Request): Promise<Response> {
 
       distribution: {
         shareGenerated,
+        // Revelaciones de /open. Es mayor que los aportes: la URL es abierta a
+        // propósito y cualquiera puede sacar un sticker sin pagar.
+        stickersHandedOut,
         // Si baja de 0,3 el problema es la tarjeta, no el tráfico.
         sharesPerContribution: contribTotal > 0 ? Math.round((shareGenerated / contribTotal) * 100) / 100 : null,
         healthy: contribTotal > 0 ? shareGenerated / contribTotal >= 0.3 : null,
