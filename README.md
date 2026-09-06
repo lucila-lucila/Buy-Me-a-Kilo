@@ -122,12 +122,13 @@ Los pagos en una moneda distinta de USD no suman kilos (no inventamos tipo de
 cambio) y quedan contados aparte, marcados en el dashboard: si aparecen seguido
 es que hay algo mal configurado en Ko-fi.
 
-`EXPECTED_NET_TICKET` es opcional y va en dólares, no en centavos: es la única de
-la capa sin sufijo `_CENTS`. Si la dejás vacía, el neto promedio esperado se
-calcula desde `EXPECTED_MIX` y las comisiones cargadas, que es lo recomendado: es
-la referencia contra la que el dashboard mide la desviación de cada semana, y
-puesto a mano queda viejo apenas cambian las comisiones. El dashboard devuelve
-los dos valores y un flag `expectedNetIsManual` para que se note si divergieron.
+El neto promedio esperado por aporte no se carga: sale de `EXPECTED_MIX` y de las
+comisiones. Es la referencia contra la que el dashboard mide la desviación de
+cada semana, y cargado a mano queda viejo apenas cambia una comisión.
+
+Ni ese valor ni `KOFI_USERNAME` son env vars. Si quedaron cargadas en Vercel de
+una versión anterior no rompen nada, y `npm run check:config` las lista en el log
+del build para poder borrarlas cuando haya tiempo.
 
 ## Dashboard privado
 

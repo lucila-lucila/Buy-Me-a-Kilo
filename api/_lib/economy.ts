@@ -106,17 +106,17 @@ export const DERIVED_NET_TICKET_CENTS = Math.round(
 )
 
 /**
- * `EXPECTED_NET_TICKET` es opcional y va en DÓLARES, no en centavos: es la única
- * de la capa sin sufijo `_CENTS` y por eso lleva unidad distinta. Sin ella se usa
- * el derivado, que es lo recomendado.
+ * Ya no existe una env var para pisar esto.
+ *
+ * Existió como `EXPECTED_NET_TICKET`, en dólares, sin el sufijo `_CENTS` de todo
+ * el resto de la capa. Esa asimetría era una trampa, y peor: un número cargado a
+ * mano queda viejo apenas cambia una comisión, y entonces la desviación semanal
+ * del dashboard mide contra un valor que ya no es cierto. Se calcula siempre.
  */
-export const EXPECTED_NET_TICKET_CENTS =
-  process.env.EXPECTED_NET_TICKET === undefined || process.env.EXPECTED_NET_TICKET === ''
-    ? DERIVED_NET_TICKET_CENTS
-    : Math.round(env('EXPECTED_NET_TICKET', DERIVED_NET_TICKET_CENTS / 100) * 100)
+export const EXPECTED_NET_TICKET_CENTS = DERIVED_NET_TICKET_CENTS
 
-/** true cuando el valor en uso viene de la env var y no del cálculo. */
-export const NET_TICKET_IS_MANUAL = EXPECTED_NET_TICKET_CENTS !== DERIVED_NET_TICKET_CENTS
+/** Env vars que quedaron sin uso. El build las señala si siguen cargadas. */
+export const DEPRECATED_ENV = ['EXPECTED_NET_TICKET', 'KOFI_USERNAME']
 
 /** Aportes por semana. No son metas de plata: son pisos para saber dónde cayó la semana. */
 export const TARGETS = {

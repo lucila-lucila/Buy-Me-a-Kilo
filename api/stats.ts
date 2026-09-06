@@ -20,8 +20,6 @@ import {
   TARGETS,
   WEEKS_REMAINING,
   netCentsForTier,
-  DERIVED_NET_TICKET_CENTS,
-  NET_TICKET_IS_MANUAL,
 } from './_lib/economy'
 
 export const config = { runtime: 'edge' }
@@ -134,12 +132,8 @@ export default async function handler(req: Request): Promise<Response> {
         grossTotalUsd: contribTotal > 0 ? usd(grossTotal / contribTotal) : 0,
         netTotalUsd: contribTotal > 0 ? usd(netTotal / contribTotal) : 0,
         netWeekUsd: usd(netTicketWeek),
+        // Sale de la mezcla esperada y de las comisiones cargadas, siempre.
         expectedNetUsd: usd(EXPECTED_NET_TICKET_CENTS),
-        // Lo que sale de la mezcla esperada con las comisiones cargadas hoy. Si
-        // difiere del de arriba, EXPECTED_NET_TICKET está puesta a mano y quedó
-        // vieja: sacala de las env vars y se recalcula sola.
-        expectedNetDerivedUsd: usd(DERIVED_NET_TICKET_CENTS),
-        expectedNetIsManual: NET_TICKET_IS_MANUAL,
         // Desviación de la semana contra el neto promedio esperado (5,66).
         deviationPct:
           contribWeek > 0
