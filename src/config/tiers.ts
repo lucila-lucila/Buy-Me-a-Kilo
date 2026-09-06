@@ -50,7 +50,7 @@ export const TIERS: Tier[] = [
  * visitante que quiere pagar termina en el Ko-fi de un desconocido. Un botón
  * que no anda es mucho menos grave.
  */
-export const KOFI_USERNAME = ''
+export const KOFI_USERNAME = 'buymeaKilo'
 
 /**
  * URL del item en Ko-fi, o null si el tier todavía no está configurado.

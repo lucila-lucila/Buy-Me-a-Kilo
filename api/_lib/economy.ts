@@ -91,8 +91,32 @@ export const EXPECTED_MIX: Record<TierId, number> = {
   overweight: 0.01,
 }
 
-/** Neto promedio por aporte con esa mezcla, en centavos. */
-export const EXPECTED_NET_TICKET_CENTS = Math.round(env('EXPECTED_NET_TICKET', 5.66) * 100)
+/**
+ * Neto promedio por aporte con la mezcla esperada, en centavos.
+ *
+ * Se calcula acá en vez de cargarse a mano: es la referencia contra la que el
+ * dashboard mide la desviación de cada semana, y si las comisiones cambian y el
+ * número queda viejo, la desviación pasa a medir contra nada.
+ */
+export const DERIVED_NET_TICKET_CENTS = Math.round(
+  (Object.entries(EXPECTED_MIX) as [TierId, number][]).reduce(
+    (sum, [id, share]) => sum + share * netCentsForTier(id),
+    0,
+  ),
+)
+
+/**
+ * `EXPECTED_NET_TICKET` es opcional y va en DÓLARES, no en centavos: es la única
+ * de la capa sin sufijo `_CENTS` y por eso lleva unidad distinta. Sin ella se usa
+ * el derivado, que es lo recomendado.
+ */
+export const EXPECTED_NET_TICKET_CENTS =
+  process.env.EXPECTED_NET_TICKET === undefined || process.env.EXPECTED_NET_TICKET === ''
+    ? DERIVED_NET_TICKET_CENTS
+    : Math.round(env('EXPECTED_NET_TICKET', DERIVED_NET_TICKET_CENTS / 100) * 100)
+
+/** true cuando el valor en uso viene de la env var y no del cálculo. */
+export const NET_TICKET_IS_MANUAL = EXPECTED_NET_TICKET_CENTS !== DERIVED_NET_TICKET_CENTS
 
 /** Aportes por semana. No son metas de plata: son pisos para saber dónde cayó la semana. */
 export const TARGETS = {

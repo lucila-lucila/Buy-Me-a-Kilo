@@ -20,6 +20,8 @@ import {
   TARGETS,
   WEEKS_REMAINING,
   netCentsForTier,
+  DERIVED_NET_TICKET_CENTS,
+  NET_TICKET_IS_MANUAL,
 } from './_lib/economy'
 
 export const config = { runtime: 'edge' }
@@ -133,6 +135,11 @@ export default async function handler(req: Request): Promise<Response> {
         netTotalUsd: contribTotal > 0 ? usd(netTotal / contribTotal) : 0,
         netWeekUsd: usd(netTicketWeek),
         expectedNetUsd: usd(EXPECTED_NET_TICKET_CENTS),
+        // Lo que sale de la mezcla esperada con las comisiones cargadas hoy. Si
+        // difiere del de arriba, EXPECTED_NET_TICKET está puesta a mano y quedó
+        // vieja: sacala de las env vars y se recalcula sola.
+        expectedNetDerivedUsd: usd(DERIVED_NET_TICKET_CENTS),
+        expectedNetIsManual: NET_TICKET_IS_MANUAL,
         // Desviación de la semana contra el neto promedio esperado (5,66).
         deviationPct:
           contribWeek > 0
@@ -152,6 +159,14 @@ export default async function handler(req: Request): Promise<Response> {
         expectedPct: EXPECTED_MIX[t.id] * 100,
         deltaPct: Math.round((pct(tierTotals[t.id], contribTotal) - EXPECTED_MIX[t.id] * 100) * 10) / 10,
       })),
+
+      // Echo de la configuración, para verificar que las env vars llegaron.
+      config: {
+        kofiPct: KOFI_PCT,
+        paypalPct: PAYPAL_PCT,
+        paypalFixedUsd: usd(PAYPAL_FIXED_CENTS),
+        overweightShippingUsd: usd(OVERWEIGHT_SHIPPING_CENTS),
+      },
 
       floor: {
         weekContributions: contribWeek,
