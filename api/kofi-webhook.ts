@@ -2,9 +2,10 @@
  * Webhook de Ko-fi.
  *
  * Regla dura: acá adentro pasan nombres, mails y direcciones. No se guardan, no
- * se loguean, no se reenvían. Se destructuran los cinco campos que importan y
- * el resto del payload muere en esta función. NUNCA agregar un console.log del
- * objeto entero, ni siquiera para debuggear una vez.
+ * se loguean, no se reenvían. Se destructuran los seis campos que importan —el
+ * token, el tipo, el monto, la moneda y los dos IDs del evento— y el resto del
+ * payload muere en esta función. NUNCA agregar un console.log del objeto
+ * entero, ni siquiera para debuggear una vez.
  */
 import { pipeline, cmd, RedisUnavailable, describeKvEnv } from './_lib/redis.js'
 import { K } from './_lib/keys.js'
@@ -43,12 +44,13 @@ export default async function handler(req: Request): Promise<Response> {
     return new Response('not configured', { status: 500 })
   }
 
-  // ---- solo estas cinco variables sobreviven al parseo ----------------------
+  // ---- solo estas seis variables sobreviven al parseo -----------------------
   let verification_token = ''
   let type = ''
   let amount = '0'
   let currency = 'USD'
   let kofi_transaction_id = ''
+  let message_id = ''
 
   try {
     const raw = new URLSearchParams(await req.text()).get('data')
@@ -59,6 +61,9 @@ export default async function handler(req: Request): Promise<Response> {
     amount = String(p.amount ?? '0')
     currency = String(p.currency ?? 'USD').toUpperCase()
     kofi_transaction_id = String(p.kofi_transaction_id ?? '')
+    // El id del evento, que es lo que Ko-fi repite cuando reintenta. Es un GUID,
+    // no un dato personal, y solo se usa para no contar dos veces.
+    message_id = String(p.message_id ?? '')
     // from_name, email, message, url y shipping quedan afuera a propósito. No se
     // manda nada por correo, así que la dirección no hace falta ni para eso.
   } catch {
@@ -78,7 +83,9 @@ export default async function handler(req: Request): Promise<Response> {
     return new Response('bad request', { status: 400 })
   }
 
-  let claimedDedupe = false
+  // Las marcas de dedupe que puso ESTA vuelta. Si la escritura falla se sueltan,
+  // para que el reintento de Ko-fi no se descarte como duplicado.
+  const claimed: string[] = []
   try {
     if (kofi_transaction_id === KOFI_TEST_TRANSACTION_ID) {
       // Se toca KV a propósito, para confirmar que la conexión está viva, pero
@@ -88,11 +95,29 @@ export default async function handler(req: Request): Promise<Response> {
       return new Response('test ok', { status: 200 })
     }
 
-    // Dedupe de reintentos. Es un ID de transacción, no un dato personal, y se
-    // borra solo a los 7 días.
-    const claimed = await cmd('SET', K.dedupe(kofi_transaction_id), '1', 'NX', 'EX', DEDUPE_TTL_SECONDS)
-    if (claimed === null) return new Response('duplicate', { status: 200 })
-    claimedDedupe = true
+    /**
+     * Dedupe de reintentos. Ko-fi reintenta reenviando el mismo evento, y ese
+     * evento trae dos identificadores: message_id, que identifica al mensaje, y
+     * kofi_transaction_id, que identifica a la transacción. Se reclaman los dos:
+     * con que uno de los dos se repita entre el envío y el reintento alcanza
+     * para que los gramos no se cuenten dos veces.
+     *
+     * Son IDs, no datos personales, y las claves se borran solas a los 7 días.
+     *
+     * Uno por vez y no en pipeline a propósito: el pipeline convierte el error
+     * en null, y null acá significa "ya estaba contado". Una caída de KV se
+     * leería como duplicado y ese aporte se perdería en silencio.
+     */
+    const keys = [K.dedupe(kofi_transaction_id)]
+    if (message_id) keys.push(K.dedupeMessage(message_id))
+
+    for (const key of keys) {
+      const ok = await cmd('SET', key, '1', 'NX', 'EX', DEDUPE_TTL_SECONDS)
+      // Ya estaba: es un reintento. Las marcas de esta vuelta quedan puestas, y
+      // está bien que queden: señalan un evento que ya se contó.
+      if (ok === null) return new Response('duplicate', { status: 200 })
+      claimed.push(key)
+    }
 
     // Moneda distinta de USD: no inventamos tipo de cambio, así que no suma
     // kilos. Se cuenta aparte para que salte en el dashboard, porque si aparece
@@ -125,9 +150,9 @@ export default async function handler(req: Request): Promise<Response> {
     const code = err instanceof RedisUnavailable ? 'kv' : 'unknown'
     console.error('kofi: fallo al escribir', code, kofi_transaction_id)
     if (code === 'kv') console.error('kofi: estado de kv', JSON.stringify(describeKvEnv()))
-    // Soltamos la marca de dedupe: si no, el reintento de Ko-fi se descarta
+    // Soltamos las marcas de dedupe: si no, el reintento de Ko-fi se descarta
     // como duplicado y esos kilos se pierden para siempre.
-    if (claimedDedupe) await cmd('DEL', K.dedupe(kofi_transaction_id)).catch(() => {})
+    for (const key of claimed) await cmd('DEL', key).catch(() => {})
     // 500 para que Ko-fi reintente: el dedupe hace que el reintento sea seguro.
     return new Response('retry', { status: 500 })
   }

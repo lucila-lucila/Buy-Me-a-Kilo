@@ -17,5 +17,11 @@ export const K = {
   shareGenerated: 'share_generated',
   /** Serie de los stickers entregados. Un entero que solo sube. */
   stickerSerial: 'sticker_serial',
+  /** Marca de "esta transacción ya se contó". Se borra sola a los 7 días. */
   dedupe: (txid: string) => `tx:${txid}`,
+  /**
+   * Lo mismo para el id del evento. Prefijo aparte a propósito: son dos espacios
+   * de nombres distintos y no se pisan entre sí.
+   */
+  dedupeMessage: (messageId: string) => `msg:${messageId}`,
 } as const
