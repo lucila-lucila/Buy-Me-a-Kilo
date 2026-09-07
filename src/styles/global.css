@@ -945,13 +945,35 @@ img {
 }
 
 /* Tiene su lugar fijo y se lee. Es lo único que mete presión de tiempo, y en
-   gris apagado directamente no existía. */
+   gris apagado directamente no existía: va en blanco pleno y un escalón arriba
+   del cuerpo de texto.
+
+   La altura está reservada con min-height. El primer render no sabe todavía
+   cuánto falta y la línea sale vacía; sin la reserva, el layout entero saltaría
+   cuando llega la respuesta. */
 .countdown {
   font-family: var(--display);
-  font-size: var(--fs-body);
+  font-size: clamp(1rem, 0.593vw + 0.867rem, 1.4rem);
+  line-height: 1.25;
   color: var(--paper);
   text-align: center;
+  text-wrap: balance;
   letter-spacing: 0.01em;
+  /* Corta después de "leaves in": la cifra queda sola en su propio renglón. */
+  max-width: 30ch;
+  min-height: 2.5em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+}
+
+/* La cifra, con más peso que la parte fija de la frase. */
+.countdown__value {
+  font-weight: inherit;
+  font-size: 1.12em;
+  /* "45 days and 6 hours" no se parte al medio. */
+  white-space: nowrap;
 }
 
 /* Menos de una semana: color de acento. */

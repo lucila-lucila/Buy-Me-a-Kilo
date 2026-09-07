@@ -1,4 +1,9 @@
 import { gramsForDollars } from './config/suitcase'
+import { HOURS_TIER_MS, MINUTES_TIER_MS } from './config/countdown'
+import type { Countdown } from './lib/useCountdown'
+
+/** "1 hour" / "6 hours". Sin abreviar: la página no escribe "6h". */
+const plural = (n: number, word: string): string => `${n} ${word}${n === 1 ? '' : 's'}`
 
 const WORDS = [
   'zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine',
@@ -83,16 +88,37 @@ export const copy = {
 
   countdown: {
     /**
-     * Siempre en días. Las semanas envejecen mal y suenan lejanas; los días
-     * bajan de a uno y eso es exactamente lo que tiene que sentirse.
+     * En primera persona. No es "el avión": es su vuelo, y el plazo es de ella
+     * antes que de la página. La parte fija va separada del número para poder
+     * darle a la cifra más peso visual que al resto de la frase.
      */
-    line: (days: number) =>
-      days <= 0
-        ? 'the plane has left'
-        : days === 1
-          ? 'one day until the plane leaves'
-          : `${days} days until the plane leaves`,
-    /** El mismo dato dentro de la prosa de abajo. */
+    lead: 'my flight to japan leaves in',
+
+    /**
+     * La cifra, por tramos. Nunca hay segundos: son el recurso de las páginas
+     * de ofertas falsas y esa asociación no la queremos. Las horas tampoco
+     * aparecen todo el tiempo, solo cuando ya dicen algo.
+     *
+     *   más de dos días   45 days and 6 hours
+     *   menos de dos días 34 hours
+     *   menos de tres     47 minutes
+     */
+    value: (c: Countdown): string => {
+      if (c.totalMs < MINUTES_TIER_MS) {
+        // Debajo del minuto no queda unidad más chica que decir sin caer en los
+        // segundos, así que se dice en palabras.
+        return c.minutes < 1 ? 'less than a minute' : plural(c.minutes, 'minute')
+      }
+      if (c.totalMs < HOURS_TIER_MS) return plural(c.totalHours, 'hour')
+      return c.hours > 0
+        ? `${plural(c.days, 'day')} and ${plural(c.hours, 'hour')}`
+        : plural(c.days, 'day')
+    },
+
+    /** En cero. Punto final: es la única frase de la página que lo lleva. */
+    gone: 'the flight left.',
+
+    /** El mismo dato dentro de la prosa de abajo, en palabras y sin precisión. */
     inline: (days: number) =>
       days <= 0
         ? 'a while ago'
@@ -101,10 +127,6 @@ export const copy = {
           : days < 14
             ? `${asWord(days)} days`
             : `${asWord(Math.round(days / 7))} weeks`,
-  },
-
-  departed: {
-    line: 'the plane left. thank you. the next suitcase opens soon.',
   },
 
   support: {

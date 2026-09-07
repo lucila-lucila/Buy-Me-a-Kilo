@@ -9,13 +9,26 @@ export interface Journey {
   peopleTotal: number
   percentFull: number
   daysRemaining: number
+  msRemaining: number
   departed: boolean
+}
+
+/**
+ * El ancla de la cuenta regresiva: cuántos milisegundos faltaban y en qué
+ * momento local lo supimos. De ahí en adelante el cliente descuenta con tiempo
+ * transcurrido, no con la hora del reloj, así que un dispositivo con la fecha
+ * corrida igual muestra bien cuánto falta.
+ */
+export interface Clock {
+  msRemaining: number
+  at: number
 }
 
 export interface KilosState {
   data: Journey | null
   /** true cuando el último fetch falló y lo que se ve es el valor anterior. */
   stale: boolean
+  clock: Clock | null
 }
 
 /**
@@ -39,6 +52,9 @@ function parse(json: unknown): Journey | null {
     peopleTotal: num('peopleTotal') ?? 0,
     percentFull: num('percentFull') ?? round1((gramsTotal / SUITCASE_CAPACITY_G) * 100),
     daysRemaining: num('daysRemaining') ?? 0,
+    // Si llega una respuesta vieja del cache del edge, sin msRemaining, los
+    // días alcanzan para no romper: la precisión vuelve en el próximo fetch.
+    msRemaining: num('msRemaining') ?? (num('daysRemaining') ?? 0) * 86_400_000,
     departed: j.departed === true,
   }
 }
@@ -49,8 +65,9 @@ function parse(json: unknown): Journey | null {
  * que baje.
  */
 export function useKilos(): KilosState {
-  const [state, setState] = useState<KilosState>({ data: null, stale: false })
+  const [state, setState] = useState<KilosState>({ data: null, stale: false, clock: null })
   const last = useRef<Journey | null>(null)
+  const clock = useRef<Clock | null>(null)
 
   useEffect(() => {
     let alive = true
@@ -59,17 +76,23 @@ export function useKilos(): KilosState {
       try {
         const res = await fetch('/api/kilos', { headers: { Accept: 'application/json' } })
         if (!res.ok) throw new Error(String(res.status))
+        // La respuesta puede venir del cache del edge, de hasta 30 segundos (o
+        // de cinco minutos si KV se cayó). Age dice de cuánto, y sin restarlo la
+        // cuenta regresiva se quedaría clavada esos segundos de más.
+        const age = Number(res.headers.get('Age') ?? 0)
+        const ageMs = Number.isFinite(age) && age > 0 ? age * 1000 : 0
         const parsed = parse(await res.json())
         if (!alive) return
         if (parsed) {
           last.current = parsed
-          setState({ data: parsed, stale: false })
+          clock.current = { msRemaining: Math.max(0, parsed.msRemaining - ageMs), at: Date.now() }
+          setState({ data: parsed, stale: false, clock: clock.current })
         } else {
-          setState({ data: last.current, stale: last.current !== null })
+          setState({ data: last.current, stale: last.current !== null, clock: clock.current })
         }
       } catch {
         if (!alive) return
-        setState({ data: last.current, stale: last.current !== null })
+        setState({ data: last.current, stale: last.current !== null, clock: clock.current })
       }
     }
 

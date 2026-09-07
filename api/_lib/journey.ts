@@ -29,8 +29,12 @@ export const SEED_PEOPLE = envInt('SEED_PEOPLE', 289)
 /** Meta interna. Nunca se muestra en la página. */
 export const TARGET_PEOPLE = envInt('TARGET_PEOPLE', 5200)
 
-/** Medianoche de Buenos Aires, cinco semanas desde el 6 de septiembre de 2026. */
-const DEPARTURE_FALLBACK = '2026-10-11T00:00:00-03:00'
+/**
+ * Medianoche de Buenos Aires del 22 de octubre de 2026. Es solo el respaldo:
+ * el valor real vive en DEPARTURE_DATE, cargado en los tres entornos de Vercel.
+ * Si algún día la fecha se mueve, se mueve ahí y no hace falta un deploy.
+ */
+const DEPARTURE_FALLBACK = '2026-10-22T00:00:00-03:00'
 
 export function departureDate(): Date {
   const raw = envText('DEPARTURE_DATE')?.trim()
@@ -44,7 +48,17 @@ export interface JourneyState {
   capacityKilos: number
   peopleTotal: number
   percentFull: number
+  /** Días enteros hacia arriba. Lo usa la prosa y la proyección del dashboard. */
   daysRemaining: number
+  /**
+   * Los milisegundos exactos que faltan. Es de acá que salen los días, las horas
+   * y los minutos de la página: un solo número, como los gramos. El cliente lo
+   * descuenta contra su propio reloj corregido por la edad de la respuesta, así
+   * que un visitante con la hora mal igual ve la cuenta bien.
+   */
+  msRemaining: number
+  /** La fecha en sí, para poder verificar de un vistazo qué fecha llegó. */
+  departureIso: string
   departed: boolean
 }
 
@@ -57,7 +71,9 @@ export function journeyState(raw: {
 }): JourneyState {
   const gramsTotal = SEED_GRAMS + raw.grams
   const now = raw.now ?? new Date()
-  const daysRemaining = Math.max(0, Math.ceil((departureDate().getTime() - now.getTime()) / 86_400_000))
+  const departure = departureDate()
+  const msRemaining = Math.max(0, departure.getTime() - now.getTime())
+  const daysRemaining = Math.ceil(msRemaining / 86_400_000)
 
   return {
     gramsTotal,
@@ -66,7 +82,9 @@ export function journeyState(raw: {
     peopleTotal: SEED_PEOPLE + raw.people,
     percentFull: round1((gramsTotal / SUITCASE_CAPACITY_G) * 100),
     daysRemaining,
-    departed: daysRemaining <= 0,
+    msRemaining,
+    departureIso: departure.toISOString(),
+    departed: msRemaining <= 0,
   }
 }
 

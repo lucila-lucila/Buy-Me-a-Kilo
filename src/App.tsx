@@ -1,5 +1,7 @@
 import { copy } from './copy'
+import { URGENT_MS } from './config/countdown'
 import { useKilos } from './lib/useKilos'
+import { useCountdown } from './lib/useCountdown'
 import { Suitcase } from './components/Suitcase'
 import { KiloCounter } from './components/KiloCounter'
 import { SuitcaseBar } from './components/SuitcaseBar'
@@ -10,19 +12,17 @@ import { Footer } from './components/Footer'
 import { Grain } from './components/Grain'
 import { Glow } from './components/Glow'
 
-/** Menos de una semana: la cuenta regresiva pasa a color de acento. */
-const URGENT_DAYS = 7
-
 export default function App() {
-  const { data, stale } = useKilos()
+  const { data, stale, clock } = useKilos()
+  const countdown = useCountdown(clock)
 
   const percent = data?.percentFull ?? 0
   const days = data?.daysRemaining ?? 0
-  const departed = data?.departed ?? false
+  const departed = countdown?.departed ?? data?.departed ?? false
 
   // Ahora solo puede pasar una vez: cuando la valija pase los 23 kilos.
   const overweight = percent > 100
-  const urgent = !departed && days > 0 && days < URGENT_DAYS
+  const urgent = countdown !== null && !departed && countdown.totalMs < URGENT_MS
   const glow = 0.35 + Math.min(1, percent / 100) * 0.65 + (overweight ? 0.3 : 0)
 
   const rotating = [copy.rotating.origin, copy.rotating.next]
@@ -54,9 +54,18 @@ export default function App() {
             )}
           </div>
 
-          {/* Fija y visible: es lo que crea urgencia. */}
+          {/* Fija y visible: es lo que crea urgencia. Mientras no llegó el
+              primer fetch queda vacía, pero con la altura ya reservada: no
+              tiene sentido anunciar un plazo que todavía no sabemos. */}
           <p className={`countdown${urgent ? ' countdown--soon' : ''}`}>
-            {departed ? copy.departed.line : copy.countdown.line(days)}
+            {countdown === null ? null : countdown.departed ? (
+              copy.countdown.gone
+            ) : (
+              <>
+                {copy.countdown.lead}{' '}
+                <b className="countdown__value">{copy.countdown.value(countdown)}</b>
+              </>
+            )}
           </p>
 
           <RotatingLine lines={rotating} frozen={departed} />
