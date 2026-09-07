@@ -1,5 +1,4 @@
 import { copy } from './copy'
-import { STRAINING_FROM_KG } from './config/suitcase'
 import { useKilos } from './lib/useKilos'
 import { Suitcase } from './components/Suitcase'
 import { KiloCounter } from './components/KiloCounter'
@@ -17,25 +16,17 @@ const URGENT_DAYS = 7
 export default function App() {
   const { data, stale } = useKilos()
 
-  const capacity = data?.suitcaseCapacity ?? 23
-  const inCurrent = data?.kilosInCurrent ?? 0
-  const number = data?.suitcaseNumber ?? 1
+  const percent = data?.percentFull ?? 0
   const days = data?.daysRemaining ?? 0
   const departed = data?.departed ?? false
 
-  // Una valija a punto de cerrarse es el único momento en que está de verdad al
-  // límite: ahí hereda la coreografía de derrame. Se repite cada 23 kilos.
-  const straining = !departed && data !== null && inCurrent >= STRAINING_FROM_KG
-  const glow = 0.35 + (inCurrent / capacity) * 0.65 + (straining ? 0.3 : 0)
-
+  // Ahora solo puede pasar una vez: cuando la valija pase los 23 kilos.
+  const overweight = percent > 100
   const urgent = !departed && days > 0 && days < URGENT_DAYS
-
-  // Lo que falta para cerrar la valija en curso. Es lo mismo que mide la barra.
-  const toGo = Math.max(0, capacity - inCurrent)
+  const glow = 0.35 + Math.min(1, percent / 100) * 0.65 + (overweight ? 0.3 : 0)
 
   const rotating = [
-    ...(data !== null ? [copy.rotating.people(data.totalPeople)] : []),
-    ...(number > 1 ? [copy.rotating.packed(number - 1)] : []),
+    ...(data !== null ? [copy.rotating.people(data.peopleTotal)] : []),
     copy.rotating.origin,
     copy.rotating.next,
   ]
@@ -48,19 +39,24 @@ export default function App() {
         <section className="hero">
           <h1 className="hero__title">{copy.hero.title}</h1>
 
-          <Suitcase ratio={inCurrent / capacity} overweight={straining} />
-
-          <p className="hero__suitcase">{copy.suitcase.label(number)}</p>
+          {/* El nivel sale del mismo percentFull que la barra y los números. */}
+          <Suitcase ratio={percent / 100} overweight={overweight} />
 
           <div className="counter">
             {data !== null && (
-              <KiloCounter total={toGo} unit={copy.suitcase.toGoUnit(toGo)} stale={stale} />
+              <KiloCounter
+                total={data.kilosTotal}
+                unit={copy.suitcase.ofCapacity(data.capacityKilos)}
+                stale={stale}
+              />
             )}
-            <SuitcaseBar kilos={inCurrent} capacity={capacity} straining={straining} />
+            <SuitcaseBar percent={percent} overweight={overweight} />
+            {data !== null && (
+              <p className="counter__detail">{copy.suitcase.detail(data.gramsTotal, data.percentFull)}</p>
+            )}
           </div>
 
-          {/* Fija y visible: es lo que crea urgencia y no puede esconderse seis
-              segundos de cada veinticuatro dentro de la rotativa. */}
+          {/* Fija y visible: es lo que crea urgencia. */}
           <p className={`countdown${urgent ? ' countdown--soon' : ''}`}>
             {departed ? copy.departed.line : copy.countdown.line(days)}
           </p>
@@ -68,14 +64,15 @@ export default function App() {
           <RotatingLine lines={rotating} frozen={departed} />
 
           <p className="hero__lead">{copy.hero.lead}</p>
+          <p className="hero__joke">{copy.hero.joke}</p>
 
           <TierGrid />
         </section>
 
         <p className="hero__prose">
-          {copy.hero.prose(number).map((line, i, all) => (
+          {copy.hero.prose.map((line, i, all) => (
             <span key={line}>
-              {line}
+              {line.replace('{when}', copy.countdown.inline(days))}
               {i < all.length - 1 && <br />}
             </span>
           ))}

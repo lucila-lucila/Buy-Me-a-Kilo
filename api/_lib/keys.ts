@@ -3,8 +3,12 @@
  * No existe ninguna clave por persona: no hay filas, solo sumas.
  */
 export const K = {
-  totalKilos: 'total_kilos',
-  weekKilos: (w: string) => `week_${w}`,
+  /**
+   * Gramos, no kilos: un aporte no llena un kilo, aporta una fracción. La clave
+   * es nueva y no reusa total_kilos, que quedó con otra unidad.
+   */
+  totalGrams: 'total_grams',
+  weekGrams: (w: string) => `grams_${w}`,
   grossTotal: 'gross_cents_total',
   grossWeek: (w: string) => `gross_cents_${w}`,
   grossOther: 'gross_other_currency_events',

@@ -32,29 +32,31 @@ export const copy = {
      * la valija, el número o la línea rotativa: el destino y el plazo viven
      * arriba.
      */
-    prose: (suitcaseNumber: number): string[] => [
-      // Con la valija #1 la frase de las trece no tiene sentido todavía.
-      suitcaseNumber <= 1
-        ? "There is one suitcase. It's mine."
-        : `There was one suitcase. Then there were ${asWord(suitcaseNumber)}.`,
-      'There will be another one, and another country.',
+    /**
+     * `{when}` lo completa el servidor. Hoy dice "five weeks", que es la frase
+     * escrita, pero cuando falten doce días va a decir doce días en vez de
+     * contradecir a la cuenta regresiva que está tres renglones más arriba.
+     */
+    prose: [
+      "There is one suitcase. It's mine. It leaves for Japan in {when}.",
+      'Then there will be another suitcase, and another country.',
       'That part is not your problem yet.',
     ],
+    /**
+     * La explicación del modelo, dicha con orgullo. Es lo que hace que nadie
+     * sienta que lo estafaron cuando compra "un kilo" y ve subir tres gramos.
+     * No sacar.
+     */
+    joke: 'a kilo costs about two hundred people. that is the whole joke.',
   },
 
   suitcase: {
-    label: (n: number) => `suitcase #${n}`,
-    note: (n: number) => `the first ${asWord(n - 1)} are already packed.`,
-    /** La primera valija todavía no tiene historia detrás. */
-    noteFirst: 'nothing is packed yet.',
-    /** Recién estrenada: la anterior acaba de cerrarse. */
-    justClosed: (n: number) => `#${n - 1} just closed. this one is empty.`,
-    progress: (kilos: number, capacity: number) => `${kilos} of ${capacity} kg`,
-    /**
-     * El único número protagonista y la única unidad visible. Mide exactamente
-     * lo mismo que la barra, así que dejan de contradecirse.
-     */
-    toGoUnit: (kilos: number) => (kilos === 1 ? 'kilo to go' : 'kilos to go'),
+    /** El número grande: los kilos que hay adentro, con un decimal. */
+    ofCapacity: (capacity: number) => `of ${capacity} kilos`,
+    /** El renglón que se mueve con cada aporte individual. */
+    detail: (grams: number, percent: number) =>
+      `${grams.toLocaleString('en-US')} grams packed · ${percent.toFixed(1)}% full`,
+    overweight: 'The suitcase is now illegal. Continue anyway.',
   },
 
   people: {
@@ -77,8 +79,6 @@ export const copy = {
   rotating: {
     people: (n: number) =>
       n === 1 ? '1 person has bought a kilo' : `${n.toLocaleString('en-US')} people have bought a kilo`,
-    packed: (suitcases: number) =>
-      `the first ${asWord(suitcases)} ${suitcases === 1 ? 'suitcase is' : 'suitcases are'} already packed`,
     origin: 'most of them arrived before this page existed',
     next: 'next stop japan. after that, undecided.',
   },
@@ -94,6 +94,15 @@ export const copy = {
         : days === 1
           ? 'one day until the plane leaves'
           : `${days} days until the plane leaves`,
+    /** El mismo dato dentro de la prosa de abajo. */
+    inline: (days: number) =>
+      days <= 0
+        ? 'a while ago'
+        : days === 1
+          ? 'a day'
+          : days < 14
+            ? `${asWord(days)} days`
+            : `${asWord(Math.round(days / 7))} weeks`,
   },
 
   departed: {
@@ -128,12 +137,6 @@ export const copy = {
     filling: 'The suitcase takes it.',
     shaking: 'Something is in the bag.',
     duplicate: 'duplicate. the suitcase sighs.',
-    /**
-     * Sin atribuir. /open no sabe si el kilo de quien está mirando cerró la
-     * valija: el webhook y la visita son independientes, y la URL es abierta a
-     * propósito. Atribuirlo sería mentirle a casi todos los que lo lean.
-     */
-    suitcaseClosed: (n: number) => `suitcase #${n - 1} just closed. #${n} is now open.`,
     rarity: {
       common: 'common. it counts the same.',
       rare: 'rare. nothing happens differently.',

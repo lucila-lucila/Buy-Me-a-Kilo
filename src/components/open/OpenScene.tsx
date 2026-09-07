@@ -7,7 +7,6 @@ import { downloadSticker } from '../../lib/shareCard'
 import { claimSerial, formatSerial } from '../../lib/serial'
 import { useKilos } from '../../lib/useKilos'
 import { useReducedMotion } from '../../lib/reducedMotion'
-import { STRAINING_FROM_KG } from '../../config/suitcase'
 import { byId, type Sticker } from '../../config/stickers'
 import { Suitcase } from '../Suitcase'
 import { Reveal } from './Reveal'
@@ -74,13 +73,9 @@ export default function OpenScene() {
   }, [reduced])
 
   const { sticker, duplicate, owned } = result
-  const total = data?.totalKilos ?? null
-  const inCurrent = data?.kilosInCurrent ?? 0
-  const capacity = data?.suitcaseCapacity ?? 23
+  const total = data?.kilosTotal ?? null
+  const percent = data?.percentFull ?? 0
   const revealed = phase === 'reveal'
-  // Una valija recién estrenada: la anterior se cerró hace poco. Sin atribuir a
-  // quien está mirando, que puede no haber pagado nada.
-  const justOpened = data !== null && inCurrent === 0 && data.totalKilos > 0
 
   const line = useMemo(() => {
     if (!revealed) return phase === 'fill' ? copy.open.filling : copy.open.shaking
@@ -100,9 +95,9 @@ export default function OpenScene() {
               transition={{ duration: 0.25 }}
             >
               <Suitcase
-                ratio={Math.min(1, (inCurrent + 1) / capacity)}
+                ratio={percent / 100}
                 breathing={false}
-                overweight={inCurrent >= STRAINING_FROM_KG}
+                overweight={percent > 100}
                 className="suitcase--stage"
               />
             </motion.div>
@@ -141,10 +136,6 @@ export default function OpenScene() {
 
       {revealed && (
         <>
-          {justOpened && (
-            <p className="open__closed">{copy.open.suitcaseClosed(data.suitcaseNumber)}</p>
-          )}
-
           <p className="open__sub">
             {copy.open.collection(owned)}
             {serial !== null && <> · <span className="open__serial">{formatSerial(serial)}</span></>}

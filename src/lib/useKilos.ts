@@ -1,15 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
-import { KILOS_POLL_MS, SUITCASE_CAPACITY_KG } from '../config/suitcase'
+import { KILOS_POLL_MS, SUITCASE_CAPACITY_G } from '../config/suitcase'
 
 /** El mismo shape que devuelve /api/kilos. */
 export interface Journey {
-  totalKilos: number
-  totalPeople: number
-  suitcaseNumber: number
-  kilosInCurrent: number
-  suitcaseCapacity: number
-  weekKilos: number
-  weekPeople: number
+  gramsTotal: number
+  kilosTotal: number
+  capacityKilos: number
+  peopleTotal: number
+  percentFull: number
   daysRemaining: number
   departed: boolean
 }
@@ -30,19 +28,16 @@ function parse(json: unknown): Journey | null {
   const j = json as Record<string, unknown>
   const num = (k: string): number | null => (typeof j[k] === 'number' ? (j[k] as number) : null)
 
-  const totalKilos = num('totalKilos')
-  const totalPeople = num('totalPeople')
-  if (totalKilos === null || totalPeople === null) return null
+  const gramsTotal = num('gramsTotal')
+  if (gramsTotal === null) return null
 
-  const capacity = num('suitcaseCapacity') ?? SUITCASE_CAPACITY_KG
+  const round1 = (n: number) => Math.round(n * 10) / 10
   return {
-    totalKilos,
-    totalPeople,
-    suitcaseNumber: num('suitcaseNumber') ?? Math.floor(totalKilos / capacity) + 1,
-    kilosInCurrent: num('kilosInCurrent') ?? totalKilos % capacity,
-    suitcaseCapacity: capacity,
-    weekKilos: num('weekKilos') ?? 0,
-    weekPeople: num('weekPeople') ?? 0,
+    gramsTotal,
+    kilosTotal: num('kilosTotal') ?? round1(gramsTotal / 1000),
+    capacityKilos: num('capacityKilos') ?? SUITCASE_CAPACITY_G / 1000,
+    peopleTotal: num('peopleTotal') ?? 0,
+    percentFull: num('percentFull') ?? round1((gramsTotal / SUITCASE_CAPACITY_G) * 100),
     daysRemaining: num('daysRemaining') ?? 0,
     departed: j.departed === true,
   }

@@ -3,9 +3,9 @@ import react from '@vitejs/plugin-react'
 import { resolve } from 'node:path'
 
 /** Arrastre inicial, igual que el default del servidor. */
-const DEV_KILOS = 289
+const DEV_GRAMS = 1309
 const DEV_PEOPLE = 289
-const CAPACITY = 23
+const CAPACITY_G = 23_000
 const DEV_DEPARTURE = '2026-10-11T00:00:00-03:00'
 
 /**
@@ -14,12 +14,11 @@ const DEV_DEPARTURE = '2026-10-11T00:00:00-03:00'
  * Solo corre en `vite dev` (apply: 'serve'), así que no existe en el build ni
  * puede llegar a producción. Los valores se pisan desde la URL de la página:
  *
- *   /                 289 kilos, valija #13 con 13 de 23
- *   /?kg=1204         cambia el total de kilos
+ *   /                 1309 g, 5.7% de la valija
+ *   /?g=11500         cambia los gramos (11500 = mitad de la valija)
  *   /?people=800      cambia la cantidad de personas
  *   /?days=3          cambia la cuenta regresiva
- *   /?straining       valija a punto de cerrarse (22 de 23)
- *   /?justclosed      valija recién estrenada (#14 con 0)
+ *   /?overweight      pasada de 23 kilos
  *   /?departed        el avión ya salió
  *
  * El override se lee del Referer, que es la URL de la página que hizo el fetch.
@@ -27,6 +26,8 @@ const DEV_DEPARTURE = '2026-10-11T00:00:00-03:00'
  */
 function mockApi(): Plugin {
   let devSerial = 216
+  const round1 = (n: number) => Math.round(n * 10) / 10
+
   return {
     name: 'bmak-mock-api',
     apply: 'serve',
@@ -48,12 +49,7 @@ function mockApi(): Plugin {
             return Number.isFinite(n) ? Math.max(0, Math.trunc(n)) : fallback
           }
 
-          let totalKilos = num('kg', DEV_KILOS)
-          if (q.has('straining')) totalKilos = 13 * CAPACITY - 1 // 22 de 23
-          if (q.has('justclosed')) totalKilos = 13 * CAPACITY // #14 con 0
-
-          // Los días se calculan igual que en el servidor, para que el mock no
-          // envejezca mal cuando pasen las semanas.
+          const gramsTotal = q.has('overweight') ? 24_100 : num('g', DEV_GRAMS)
           const realDays = Math.max(
             0,
             Math.ceil((new Date(DEV_DEPARTURE).getTime() - Date.now()) / 86_400_000),
@@ -64,16 +60,13 @@ function mockApi(): Plugin {
           res.setHeader('Cache-Control', 'no-store')
           res.end(
             JSON.stringify({
-              totalKilos,
-              totalPeople: num('people', DEV_PEOPLE),
-              suitcaseNumber: Math.floor(totalKilos / CAPACITY) + 1,
-              kilosInCurrent: totalKilos % CAPACITY,
-              suitcaseCapacity: CAPACITY,
-              weekKilos: num('weekkg', 0),
-              weekPeople: num('weekpeople', 0),
+              gramsTotal,
+              kilosTotal: round1(gramsTotal / 1000),
+              capacityKilos: CAPACITY_G / 1000,
+              peopleTotal: num('people', DEV_PEOPLE),
+              percentFull: round1((gramsTotal / CAPACITY_G) * 100),
               daysRemaining: days,
               departed: days <= 0,
-              _departure: DEV_DEPARTURE,
             }),
           )
           return

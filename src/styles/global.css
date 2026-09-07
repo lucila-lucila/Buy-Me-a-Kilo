@@ -1124,3 +1124,21 @@ img {
     transition: none;
   }
 }
+
+/* El renglón que se mueve con cada aporte: gramos y porcentaje, misma fuente
+   que el nivel de la valija y que la barra. */
+.counter__detail {
+  font-size: var(--fs-micro);
+  color: var(--paper-faint);
+  letter-spacing: 0.01em;
+  text-align: center;
+}
+
+/* La explicación del modelo. Chica, debajo del mensaje central. */
+.hero__joke {
+  font-size: var(--fs-micro);
+  color: var(--paper-faint);
+  text-align: center;
+  max-width: 36ch;
+  line-height: 1.3;
+}

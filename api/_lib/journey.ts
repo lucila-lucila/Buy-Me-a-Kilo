@@ -1,28 +1,34 @@
 /**
- * El estado del viaje: valija en curso, personas y cuenta regresiva.
+ * El estado del viaje: cuánto pesa la valija y cuántos días faltan.
  *
- * Todo derivado de dos enteros de KV más el arrastre. Nada de esto se guarda por
- * separado, así que no se puede desincronizar.
+ * Todo sale de un único número, los gramos totales. El nivel del relleno, la
+ * barra, los kilos y el porcentaje leen la misma fuente: si alguna vez el nivel
+ * dibujado y el porcentaje no coinciden, es un bug.
+ *
+ *   personas que aportaron
+ *     -> gramos que suman sus tiers
+ *       -> gramos totales (+ SEED_GRAMS)
+ *         -> percentFull = gramos / 23000
+ *           -> altura del relleno, barra, kilos y porcentaje en pantalla
  */
-import { SUITCASE_CAPACITY_KG } from '../../src/config/suitcase.js'
+import { SUITCASE_CAPACITY_G } from '../../src/config/suitcase.js'
 import { envInt, envText } from './env.js'
 
 /**
  * Arrastre inicial: 289 aportes reales que llegaron por redes antes de que esta
- * página existiera, contados como un kilo por persona, que es la lectura más
- * conservadora.
+ * página existiera. 1.309 g salen de 289 personas por 1,51 unidades por 3
+ * gramos. La valija arranca al 5,7%, y está bien que se vea poco llena: hay
+ * cinco semanas por delante y una barra casi llena no tiene nada que contar.
  *
- * Se suma al leer y no se escribe en KV: así el contador del webhook sigue
- * siendo solo lo que pasó por acá, y corregir el arrastre no toca la base.
- *
- * El default NO es cero a propósito. Si estas variables se borran o quedan
- * vacías, con cero el número de valija retrocedería de #13 a #1, y la regla dura
- * es que nunca retrocede. Con el valor real como default, borrarlas no cambia
- * nada. Los valores viven además en las env vars para poder corregirlos sin
- * tocar código.
+ * Se suma al leer y no se escribe en KV, así el contador del webhook sigue
+ * siendo solo lo que pasó por acá. El default NO es cero: si las variables se
+ * borraran, con cero el número público bajaría, y la regla es que nunca baja.
  */
-export const SEED_KILOS = envInt('SEED_KILOS', 289)
+export const SEED_GRAMS = envInt('SEED_GRAMS', 1309)
 export const SEED_PEOPLE = envInt('SEED_PEOPLE', 289)
+
+/** Meta interna. Nunca se muestra en la página. */
+export const TARGET_PEOPLE = envInt('TARGET_PEOPLE', 5200)
 
 /** Medianoche de Buenos Aires, cinco semanas desde el 6 de septiembre de 2026. */
 const DEPARTURE_FALLBACK = '2026-10-11T00:00:00-03:00'
@@ -34,46 +40,36 @@ export function departureDate(): Date {
 }
 
 export interface JourneyState {
-  totalKilos: number
-  totalPeople: number
-  suitcaseNumber: number
-  kilosInCurrent: number
-  suitcaseCapacity: number
-  weekKilos: number
-  weekPeople: number
+  gramsTotal: number
+  kilosTotal: number
+  capacityKilos: number
+  peopleTotal: number
+  percentFull: number
   daysRemaining: number
   departed: boolean
 }
 
-/**
- * `kilosInCurrent` en 0 con total distinto de 0 es una valija recién estrenada,
- * no la anterior llena: el módulo lo resuelve solo.
- */
+const round1 = (n: number) => Math.round(n * 10) / 10
+
 export function journeyState(raw: {
-  kilos: number
+  grams: number
   people: number
-  weekKilos: number
-  weekPeople: number
   now?: Date
 }): JourneyState {
-  const totalKilos = SEED_KILOS + raw.kilos
-  const totalPeople = SEED_PEOPLE + raw.people
+  const gramsTotal = SEED_GRAMS + raw.grams
   const now = raw.now ?? new Date()
-  const msLeft = departureDate().getTime() - now.getTime()
-  const daysRemaining = Math.max(0, Math.ceil(msLeft / 86_400_000))
+  const daysRemaining = Math.max(0, Math.ceil((departureDate().getTime() - now.getTime()) / 86_400_000))
 
   return {
-    totalKilos,
-    totalPeople,
-    suitcaseNumber: Math.floor(totalKilos / SUITCASE_CAPACITY_KG) + 1,
-    kilosInCurrent: totalKilos % SUITCASE_CAPACITY_KG,
-    suitcaseCapacity: SUITCASE_CAPACITY_KG,
-    weekKilos: raw.weekKilos,
-    weekPeople: raw.weekPeople,
+    gramsTotal,
+    kilosTotal: round1(gramsTotal / 1000),
+    capacityKilos: SUITCASE_CAPACITY_G / 1000,
+    peopleTotal: SEED_PEOPLE + raw.people,
+    percentFull: round1((gramsTotal / SUITCASE_CAPACITY_G) * 100),
     daysRemaining,
     departed: daysRemaining <= 0,
   }
 }
 
-/** Semanas que faltan, para la proyección del dashboard. Reemplaza a WEEKS_REMAINING. */
+/** Semanas que faltan, para la proyección del dashboard. */
 export const weeksRemaining = (days: number): number => Math.max(0, Math.ceil(days / 7))

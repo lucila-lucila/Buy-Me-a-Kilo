@@ -10,6 +10,7 @@ import { pipeline, cmd, RedisUnavailable, describeKvEnv } from './_lib/redis.js'
 import { K } from './_lib/keys.js'
 import { isoWeekKey } from './_lib/week.js'
 import { shopCodeToKilos, kilosForAmountCents } from './_lib/economy.js'
+import { gramsForUnits } from '../src/config/suitcase.js'
 import { envText } from './_lib/env.js'
 
 export const config = { runtime: 'edge' }
@@ -121,8 +122,11 @@ export default async function handler(req: Request): Promise<Response> {
       if (kilos > 0) writes.push(['INCR', K.tierTotal(kilos)], ['INCR', K.tierWeek(kilos, week)])
     }
 
+    // Los tiers suman GRAMOS, no kilos: un aporte no llena un kilo, aporta una
+    // fracción, y entre muchos llenan uno. Los kilos del tier son su nombre.
     if (kilos > 0) {
-      writes.push(['INCRBY', K.totalKilos, kilos], ['INCRBY', K.weekKilos(week), kilos])
+      const grams = gramsForUnits(kilos)
+      writes.push(['INCRBY', K.totalGrams, grams], ['INCRBY', K.weekGrams(week), grams])
     }
     writes.push(
       ['INCRBY', K.grossTotal, cents],

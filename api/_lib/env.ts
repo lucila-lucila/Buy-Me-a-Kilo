@@ -13,8 +13,9 @@ const RAW = {
   KOFI_VERIFICATION_TOKEN: process.env.KOFI_VERIFICATION_TOKEN,
   STATS_SECRET: process.env.STATS_SECRET,
 
-  SEED_KILOS: process.env.SEED_KILOS,
+  SEED_GRAMS: process.env.SEED_GRAMS,
   SEED_PEOPLE: process.env.SEED_PEOPLE,
+  TARGET_PEOPLE: process.env.TARGET_PEOPLE,
   DEPARTURE_DATE: process.env.DEPARTURE_DATE,
 
   KOFI_PCT: process.env.KOFI_PCT,

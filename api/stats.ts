@@ -8,7 +8,14 @@
 import { pipeline, toInt, describeKvEnv } from './_lib/redis.js'
 import { K } from './_lib/keys.js'
 import { isoWeekKey, previousWeekKeys } from './_lib/week.js'
-import { journeyState, weeksRemaining, SEED_KILOS, SEED_PEOPLE, departureDate } from './_lib/journey.js'
+import {
+  journeyState,
+  weeksRemaining,
+  SEED_GRAMS,
+  SEED_PEOPLE,
+  TARGET_PEOPLE,
+  departureDate,
+} from './_lib/journey.js'
 import { envText } from './_lib/env.js'
 import { TIERS, type TierId } from '../src/config/tiers.js'
 import {
@@ -67,8 +74,8 @@ export default async function handler(req: Request): Promise<Response> {
   const prev = previousWeekKeys(3)
 
   const reads: (string | number)[][] = [
-    ['GET', K.totalKilos],
-    ['GET', K.weekKilos(week)],
+    ['GET', K.totalGrams],
+    ['GET', K.weekGrams(week)],
     ['GET', K.grossTotal],
     ['GET', K.grossWeek(week)],
     ['GET', K.contribTotal],
@@ -78,7 +85,7 @@ export default async function handler(req: Request): Promise<Response> {
     ['GET', K.stickerSerial],
   ]
   for (const t of TIERS) reads.push(['GET', K.tierTotal(t.kilos)], ['GET', K.tierWeek(t.kilos, week)])
-  for (const w of prev) reads.push(['GET', K.grossWeek(w)], ['GET', K.contribWeek(w)], ['GET', K.weekKilos(w)])
+  for (const w of prev) reads.push(['GET', K.grossWeek(w)], ['GET', K.contribWeek(w)], ['GET', K.weekGrams(w)])
 
   let raw: unknown[]
   try {
@@ -97,8 +104,8 @@ export default async function handler(req: Request): Promise<Response> {
   }
 
   let i = 0
-  const totalKilos = toInt(raw[i++])
-  const weekKilos = toInt(raw[i++])
+  const totalGrams = toInt(raw[i++])
+  const weekGrams = toInt(raw[i++])
   const grossTotal = toInt(raw[i++])
   const grossWeek = toInt(raw[i++])
   const contribTotal = toInt(raw[i++])
@@ -117,8 +124,8 @@ export default async function handler(req: Request): Promise<Response> {
   const history = prev.map((w) => {
     const gross = toInt(raw[i++])
     const contribs = toInt(raw[i++])
-    const kilos = toInt(raw[i++])
-    return { week: w, grossCents: gross, contribs, kilos }
+    const grams = toInt(raw[i++])
+    return { week: w, grossCents: gross, contribs, grams }
   })
 
   const netTotal = netOf(grossTotal, contribTotal, tierTotals.overweight)
@@ -141,16 +148,18 @@ export default async function handler(req: Request): Promise<Response> {
     {
       week,
       // Mismo estado que ve la página, para poder comparar de un vistazo.
-      journey: journeyState({
-        kilos: totalKilos,
-        people: contribTotal,
-        weekKilos,
-        weekPeople: contribWeek,
-      }),
-      seed: { kilos: SEED_KILOS, people: SEED_PEOPLE, note: 'aportes previos a la página, sumados al leer' },
+      journey: journeyState({ grams: totalGrams, people: contribTotal }),
+      seed: { grams: SEED_GRAMS, people: SEED_PEOPLE, note: 'aportes previos a la página, sumados al leer' },
       departure: departureDate().toISOString(),
 
-      kilos: { total: totalKilos, week: weekKilos },
+      // La meta de personas es interna y nunca sale a la página.
+      goal: {
+        targetPeople: TARGET_PEOPLE,
+        peopleSoFar: SEED_PEOPLE + contribTotal,
+        pctOfTarget: Math.round(((SEED_PEOPLE + contribTotal) / TARGET_PEOPLE) * 1000) / 10,
+      },
+
+      grams: { total: totalGrams, week: weekGrams },
 
       gross: { totalUsd: usd(grossTotal), weekUsd: usd(grossWeek) },
       netEstimated: { totalUsd: usd(netTotal), weekUsd: usd(netWeek) },

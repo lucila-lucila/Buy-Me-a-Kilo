@@ -110,7 +110,13 @@ export const DERIVED_NET_TICKET_CENTS = Math.round(
 export const EXPECTED_NET_TICKET_CENTS = DERIVED_NET_TICKET_CENTS
 
 /** Env vars que quedaron sin uso. El build las señala si siguen cargadas. */
-export const DEPRECATED_ENV = ['EXPECTED_NET_TICKET', 'KOFI_USERNAME', 'WEEKS_REMAINING']
+export const DEPRECATED_ENV = [
+  'EXPECTED_NET_TICKET',
+  'KOFI_USERNAME',
+  'WEEKS_REMAINING',
+  // La unidad pasó a gramos: una persona no llena un kilo.
+  'SEED_KILOS',
+]
 
 /** Aportes por semana. No son metas de plata: son pisos para saber dónde cayó la semana. */
 export const TARGETS = {

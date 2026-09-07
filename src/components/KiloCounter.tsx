@@ -26,7 +26,8 @@ export function KiloCounter({
   unit: string
   stale: boolean
 }) {
-  const text = total.toLocaleString('en-US')
+  // Un decimal fijo: 1.3, no 1.30 ni 1. El punto pasa por la rama de separador.
+  const text = total.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 })
   return (
     <p className="counter__number" title={stale ? 'last known count' : undefined}>
       <span className="sr-only">

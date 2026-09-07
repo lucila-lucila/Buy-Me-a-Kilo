@@ -92,35 +92,44 @@ Si agregás una variable de servidor nueva, sumala a `ECONOMY_ENV` en
 le puso prefijo `VITE_`. Las `VITE_VERCEL_*` que inyecta Vercel están excluidas
 a propósito, son públicas por diseño y no tienen nada nuestro adentro.
 
-## Valijas numeradas
+## La escala: gramos
 
-La página muestra siempre una valija en curso. Cuando se llena a los 23 kilos se
-cierra y arranca la siguiente, así que nunca se ve ni vacía ni desbordada, y el
-exceso es el chiste en vez del problema.
+Una sola valija de 23 kilos para este viaje. La unidad interna son **gramos**,
+porque un aporte no llena un kilo: lo llenan entre muchos. Un kilo son unas 220
+personas, y eso es el chiste, dicho en voz alta en el hero.
 
-Todo se deriva de dos enteros de KV más el arrastre, en `api/_lib/journey.ts`.
-Nada se guarda por separado, así que no se puede desincronizar:
+Cada tier aporta `GRAMS_PER_UNIT` por sus kilos-unidad: 3, 9, 18 y 36 g. Los
+gramos por tier se derivan, no se escriben por separado: una tabla duplicada se
+desincroniza el día que cambie la constante.
+
+De dónde sale el 3: la meta interna son 5.200 personas con la mezcla 85/10/4/1,
+que da 1,51 unidades por persona y 7.852 unidades. 23.000 g sobre 7.852 dan
+2,93 g, redondeado a 3. Verificado: con esas 5.200 personas la valija llega al
+102% y queda llena.
+
+Todo lo que se ve sale de un único número, en `api/_lib/journey.ts`:
 
 ```
-totalKilos     = SEED_KILOS  + total_kilos
-totalPeople    = SEED_PEOPLE + count_contrib_total
-suitcaseNumber = floor(totalKilos / 23) + 1
-kilosInCurrent = totalKilos % 23
+personas que aportaron
+  -> gramos que suman sus tiers
+    -> gramos totales (+ SEED_GRAMS)
+      -> percentFull = gramos / 23000
+        -> altura del relleno, barra, kilos y porcentaje en pantalla
 ```
 
-Las personas son los aportes, que ya se contaban en `count_contrib_total`. No se
-creó una clave nueva para lo mismo: dos contadores del mismo hecho se
-desincronizan el día que una escritura falle y no hay forma de saber cuál miente.
+Nada derivado se guarda, así que el nivel dibujado y el porcentaje no se pueden
+desincronizar. Si alguna vez no coinciden, es un bug.
+
+La clave de KV es `total_grams` y no reusa `total_kilos`, que quedó con otra
+unidad. Las personas siguen saliendo de `count_contrib_total`, que ya se escribía.
 
 **El contador es monótono.** Solo lo mueve el webhook de un aporte, y no existe
-ninguna operación que lo baje. La valija es el registro histórico de lo que se
-fue llenando, no el saldo disponible: retirar la plata de Ko-fi no lo toca, y un
-reembolso se anota en el dashboard privado, nunca restando kilos. El número de
-valija nunca retrocede.
+ninguna operación que lo baje. Retirar la plata de Ko-fi no lo toca, y un
+reembolso se anota en el dashboard privado, nunca restando gramos. Por eso
+`SEED_GRAMS` y `SEED_PEOPLE` tienen el valor real como default y no cero.
 
-Por eso `SEED_KILOS` y `SEED_PEOPLE` tienen el valor real como default en el
-código y no cero: si las variables se borraran, con cero la valija saltaría de
-la #13 a la #1.
+La meta de 5.200 personas es interna: vive en `TARGET_PEOPLE` y solo aparece en
+`/api/stats`. Nunca sale a la página.
 
 El estado **departed** (`daysRemaining` en 0) está contemplado en el shape y en
 el copy, pero todavía sin implementar en detalle.
