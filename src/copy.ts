@@ -39,7 +39,13 @@ export const copy = {
      * La línea operativa va arriba del fold, sola: es la que explica qué se
      * compra. El resto del relato entra apenas abajo, después del botón.
      */
-    lead: "Fill a kilo, get a sticker. You don't get to pick which one.",
+    /**
+     * El espacio entre "You" y "don't" es duro (\u00a0) a propósito: sin él, en
+     * un teléfono angosto el renglón se cortaba justo después de "You" y la
+     * frase quedaba partida por la mitad de la cláusula. Atado así, el único
+     * corte posible cae después del punto, que es donde tiene que caer.
+     */
+    lead: "Fill a kilo, get a sticker. You\u00a0don't get to pick which one.",
     /**
      * El cierre, al final de todo. Dos líneas y nada más.
      *

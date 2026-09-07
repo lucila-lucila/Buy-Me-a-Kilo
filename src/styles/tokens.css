@@ -29,6 +29,12 @@
   --body: 'Familjen Grotesk', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
 
   --page: 720px;
+  /* El ancho de los bloques de texto. Estaban limitados en ch sobre el cuerpo
+     chico, y eso los dejaba en 256 px: "Fill a kilo, get a sticker. You don't
+     get to pick which one." se partía después de "You". A 600 px las frases de
+     la página entran enteras o se parten por la mitad, que es donde tienen que
+     partirse. */
+  --measure: min(600px, 100%);
   --gap: 0.75rem;
 
   /* Sube con el contador: es el único gradiente de la página. */

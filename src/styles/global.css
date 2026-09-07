@@ -114,8 +114,8 @@ img {
   transition: opacity 900ms ease;
 }
 
-/* La primera pantalla: valija, contador, copy y los cuatro tiers. Si hay que
-   scrollear para entender qué se compra, la persona ya se fue. */
+/* La primera pantalla. Si hay que scrollear para entender qué se compra, la
+   persona ya se fue. */
 .hero {
   display: flex;
   flex-direction: column;
@@ -141,7 +141,7 @@ img {
   color: var(--paper);
   font-weight: 500;
   text-wrap: balance;
-  max-width: 32ch;
+  max-width: var(--measure);
 }
 
 /* El relato, apenas abajo de los tiers. */
@@ -152,20 +152,36 @@ img {
   line-height: 1.35;
   color: var(--paper-dim);
   text-wrap: balance;
-  max-width: 40ch;
+  max-width: var(--measure);
 }
 
+/* La cinta de muestras. Es lo único que muestra qué se compra, así que no se
+   saca; pero era una galería de 250 px de alto en el medio de la página, y lo
+   que tiene que parecer es una cinta que pasa.
+
+   El título va al costado y no arriba: puesto arriba se lleva su renglón, su
+   margen y el aire de los dos lados, y eso solo ya era más alto que las fichas.
+   Al costado ocupa el hueco que la cinta deja igual. */
 .section {
-  margin-top: clamp(2.5rem, 9vw, 4rem);
+  margin-top: clamp(1.1rem, 3.5vw, 1.75rem);
+  display: flex;
+  align-items: center;
+  gap: clamp(0.6rem, 2vw, 1.1rem);
 }
 
+/* Angosto a propósito: tres renglones cortos al lado de la cinta, más bajos que
+   las fichas, así el alto de la sección lo sigue poniendo la cinta. */
 .section__heading {
+  flex: none;
+  width: min(12ch, 32%);
+  margin: 0;
   font-family: var(--display);
   font-weight: 400;
-  font-size: var(--fs-heading);
-  line-height: 1.1;
-  margin: 0 0 1rem;
-  text-align: center;
+  font-size: var(--fs-micro);
+  line-height: 1.2;
+  letter-spacing: 0.01em;
+  text-align: left;
+  color: var(--paper-dim);
 }
 
 /* -------------------------------------------------------------- suitcase -- */
@@ -404,9 +420,13 @@ img {
    proporción: un ciclo recorre 12 x (ficha + gap), y a 37 px/s eso da los
    segundos de abajo. Si cambiás el tamaño, recalculá la duración. */
 .marquee {
-  --item: 104px;
-  --gap-item: 12px;
-  --cycle: 37s;
+  --item: 48px;
+  --gap-item: 8px;
+  --cycle: 17.9s;
+  flex: 1;
+  /* Sin esto un hijo de flex no baja de su ancho de contenido y la cinta, que
+     mide doce fichas por dos, empujaría la página entera a lo ancho. */
+  min-width: 0;
   overflow: hidden;
   /* Los stickers entran y salen desvaneciéndose contra el fondo en vez de
      cortarse contra el canto. */
@@ -490,7 +510,8 @@ img {
 /* -------------------------------------------------------------- privacy -- */
 
 .privacy {
-  margin: clamp(2rem, 8vw, 3rem) 0 0;
+  margin: clamp(1.5rem, 5vw, 2.25rem) auto 0;
+  max-width: var(--measure);
   text-align: center;
   font-size: var(--fs-body);
   color: var(--paper-dim);
@@ -498,7 +519,7 @@ img {
 }
 
 .footer {
-  margin-top: clamp(2.5rem, 9vw, 4rem);
+  margin-top: clamp(1.75rem, 6vw, 2.75rem);
   padding-top: 1.25rem;
   border-top: 1px solid var(--hairline);
   text-align: center;
@@ -699,9 +720,13 @@ img {
 
 @media (min-width: 620px) {
   .marquee {
-    --item: 140px;
-    --gap-item: 16px;
-    --cycle: 50s;
+    --item: 64px;
+    --gap-item: 10px;
+    --cycle: 23.7s;
+  }
+
+  .section__heading {
+    font-size: var(--fs-small);
   }
 }
 
@@ -1080,7 +1105,7 @@ img {
   font-size: var(--fs-micro);
   color: var(--paper-faint);
   text-align: center;
-  max-width: 36ch;
+  max-width: var(--measure);
   line-height: 1.3;
 }
 
@@ -1127,5 +1152,5 @@ img {
   font-size: var(--fs-micro);
   color: var(--paper-faint);
   text-align: center;
-  max-width: 34ch;
+  max-width: var(--measure);
 }
