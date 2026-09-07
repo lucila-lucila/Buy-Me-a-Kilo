@@ -11,7 +11,7 @@ import { Footer } from './components/Footer'
 import { Grain } from './components/Grain'
 import { Glow } from './components/Glow'
 
-/** Menos de una semana: la cuenta regresiva deja de rotar y se queda fija. */
+/** Menos de una semana: la cuenta regresiva pasa a color de acento. */
 const URGENT_DAYS = 7
 
 export default function App() {
@@ -29,16 +29,16 @@ export default function App() {
   const glow = 0.35 + (inCurrent / capacity) * 0.65 + (straining ? 0.3 : 0)
 
   const urgent = !departed && days > 0 && days < URGENT_DAYS
-  const rotating = departed
-    ? [copy.departed.line]
-    : urgent
-      ? [copy.rotating.days(days)]
-      : [
-          copy.rotating.days(days),
-          ...(number > 1 ? [copy.rotating.packed(number - 1)] : []),
-          copy.rotating.origin,
-          copy.rotating.next,
-        ]
+
+  // Lo que falta para cerrar la valija en curso. Es lo mismo que mide la barra.
+  const toGo = Math.max(0, capacity - inCurrent)
+
+  const rotating = [
+    ...(data !== null ? [copy.rotating.people(data.totalPeople)] : []),
+    ...(number > 1 ? [copy.rotating.packed(number - 1)] : []),
+    copy.rotating.origin,
+    copy.rotating.next,
+  ]
 
   return (
     <>
@@ -53,11 +53,19 @@ export default function App() {
           <p className="hero__suitcase">{copy.suitcase.label(number)}</p>
 
           <div className="counter">
-            {data !== null && <KiloCounter total={data.totalPeople} unit="people" stale={stale} />}
+            {data !== null && (
+              <KiloCounter total={toGo} unit={copy.suitcase.toGoUnit(toGo)} stale={stale} />
+            )}
             <SuitcaseBar kilos={inCurrent} capacity={capacity} straining={straining} />
           </div>
 
-          <RotatingLine lines={rotating} frozen={urgent || departed} />
+          {/* Fija y visible: es lo que crea urgencia y no puede esconderse seis
+              segundos de cada veinticuatro dentro de la rotativa. */}
+          <p className={`countdown${urgent ? ' countdown--soon' : ''}`}>
+            {departed ? copy.departed.line : copy.countdown.line(days)}
+          </p>
+
+          <RotatingLine lines={rotating} frozen={departed} />
 
           <p className="hero__lead">{copy.hero.lead}</p>
 
@@ -65,10 +73,10 @@ export default function App() {
         </section>
 
         <p className="hero__prose">
-          {copy.hero.prose.map((line, i) => (
+          {copy.hero.prose(number).map((line, i, all) => (
             <span key={line}>
               {line}
-              {i < copy.hero.prose.length - 1 && <br />}
+              {i < all.length - 1 && <br />}
             </span>
           ))}
         </p>

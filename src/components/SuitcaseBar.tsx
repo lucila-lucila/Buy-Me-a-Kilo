@@ -1,9 +1,11 @@
 import { copy } from '../copy'
 
 /**
- * El llenado de la valija en curso. A la izquierda no va nada: todo lo que
- * estaba ahí se mudó a la línea rotativa, para que el hero deje de ser un muro
- * de texto.
+ * El llenado de la valija en curso.
+ *
+ * Sin etiquetas numéricas: el número grande de arriba mide exactamente lo mismo
+ * y repetirlo era ruido. Queda el aria-label, que no se ve pero es lo único que
+ * tiene un lector de pantalla.
  */
 export function SuitcaseBar({
   kilos,
@@ -28,9 +30,6 @@ export function SuitcaseBar({
         aria-label={copy.suitcase.progress(kilos, capacity)}
       >
         <div className="goal__fill" style={{ width: `${Math.max(pct, kilos > 0 ? 3 : 0)}%` }} />
-      </div>
-      <div className="goal__meta">
-        <span>{copy.suitcase.progress(kilos, capacity)}</span>
       </div>
     </div>
   )

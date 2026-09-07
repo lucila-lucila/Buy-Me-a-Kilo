@@ -1,9 +1,14 @@
 const WORDS = [
   'zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine',
-  'ten', 'eleven', 'twelve', 'thirteen',
+  'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen',
+  'seventeen', 'eighteen', 'nineteen', 'twenty',
 ]
 
-/** Números en palabras hasta trece; de ahí en más, en dígitos. */
+/**
+ * Números en palabras hasta veinte; de ahí en más, en dígitos. Pasada esa
+ * altura el dígito pelado dice mejor lo desmedido del asunto: "then there were
+ * 41" se lee como lo que es.
+ */
 function asWord(n: number): string {
   return WORDS[n] ?? String(n)
 }
@@ -27,9 +32,12 @@ export const copy = {
      * la valija, el número o la línea rotativa: el destino y el plazo viven
      * arriba.
      */
-    prose: [
-      "There is one suitcase. It's mine.",
-      'Then there will be another suitcase, and another country.',
+    prose: (suitcaseNumber: number): string[] => [
+      // Con la valija #1 la frase de las trece no tiene sentido todavía.
+      suitcaseNumber <= 1
+        ? "There is one suitcase. It's mine."
+        : `There was one suitcase. Then there were ${asWord(suitcaseNumber)}.`,
+      'There will be another one, and another country.',
       'That part is not your problem yet.',
     ],
   },
@@ -42,6 +50,11 @@ export const copy = {
     /** Recién estrenada: la anterior acaba de cerrarse. */
     justClosed: (n: number) => `#${n - 1} just closed. this one is empty.`,
     progress: (kilos: number, capacity: number) => `${kilos} of ${capacity} kg`,
+    /**
+     * El único número protagonista y la única unidad visible. Mide exactamente
+     * lo mismo que la barra, así que dejan de contradecirse.
+     */
+    toGoUnit: (kilos: number) => (kilos === 1 ? 'kilo to go' : 'kilos to go'),
   },
 
   people: {
@@ -58,11 +71,12 @@ export const copy = {
    * Un solo renglón que va alternando. Todo lo que antes eran cuatro bloques
    * sueltos de texto entra acá de a uno: el hero deja de ser un muro.
    *
-   * La cuenta regresiva va primera, y cuando falten menos de siete días deja de
-   * rotar y queda fija: a esa altura es lo único que importa.
+   * La cuenta regresiva NO está acá: tiene su lugar fijo. Escondida seis
+   * segundos de cada veinticuatro no crea ninguna urgencia.
    */
   rotating: {
-    days: (n: number) => (n === 1 ? 'one day until the plane leaves' : `${n} days until the plane leaves`),
+    people: (n: number) =>
+      n === 1 ? '1 person has bought a kilo' : `${n.toLocaleString('en-US')} people have bought a kilo`,
     packed: (suitcases: number) =>
       `the first ${asWord(suitcases)} ${suitcases === 1 ? 'suitcase is' : 'suitcases are'} already packed`,
     origin: 'most of them arrived before this page existed',
@@ -70,18 +84,16 @@ export const copy = {
   },
 
   countdown: {
-    /** Semanas mientras falten 14 días o más, después días. */
+    /**
+     * Siempre en días. Las semanas envejecen mal y suenan lejanas; los días
+     * bajan de a uno y eso es exactamente lo que tiene que sentirse.
+     */
     line: (days: number) =>
       days <= 0
-        ? 'the plane has left.'
+        ? 'the plane has left'
         : days === 1
           ? 'one day until the plane leaves'
-          : days < 14
-            ? `${days} days until the plane leaves`
-            : `${asWord(Math.round(days / 7))} weeks until the plane leaves`,
-    /** El mismo dato dentro de la línea del hero. */
-    inline: (days: number) =>
-      days <= 0 ? 'a while ago' : days === 1 ? 'a day' : days < 14 ? `${asWord(days)} days` : `${asWord(Math.round(days / 7))} weeks`,
+          : `${days} days until the plane leaves`,
   },
 
   departed: {

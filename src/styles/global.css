@@ -182,7 +182,7 @@ img {
      la altura: con la valija en curso, su número, las personas y la cuenta
      regresiva, el hero tiene cuatro bloques más que antes, y la regla que
      gobierna sigue siendo que los cuatro tiers entren antes del fold. */
-  width: min(56vw, 22svh, 340px);
+  width: min(44vw, 16svh, 240px);
   aspect-ratio: 1;
   flex: none;
 }
@@ -275,8 +275,8 @@ img {
   align-items: baseline;
   gap: 0.3rem;
   font-family: var(--display);
-  font-size: clamp(1.7rem, 9vw, 2.6rem);
-  line-height: 0.9;
+  font-size: clamp(1.4rem, 7vw, 2rem);
+  line-height: 0.95;
   letter-spacing: -0.02em;
   /* Como filtro y no como text-shadow: los digitos van en columnas con overflow
      hidden, y un text-shadow se recortaria en un rectangulo alrededor de cada
@@ -834,11 +834,11 @@ img {
   }
 
   .suitcase {
-    width: min(60vw, 31svh, 420px);
+    width: min(48vw, 24svh, 320px);
   }
 
   .counter__number {
-    font-size: var(--fs-display);
+    font-size: clamp(1.7rem, 4vw, 2.4rem);
   }
 
   .tier {
@@ -1073,18 +1073,20 @@ img {
   line-height: 1.2;
 }
 
-/* Es la quinta en la jerarquía: va discreta. Se enciende sola cuando la urgencia
-   es real, o sea cuando faltan menos de dos semanas. */
+/* Tiene su lugar fijo y se lee. Es lo único que mete presión de tiempo, y en
+   gris apagado directamente no existía. */
 .countdown {
   font-family: var(--display);
-  font-size: var(--fs-micro);
-  color: var(--paper-dim);
+  font-size: var(--fs-body);
+  color: var(--paper);
   text-align: center;
+  letter-spacing: 0.01em;
 }
 
+/* Menos de una semana: color de acento. */
 .countdown--soon {
   color: var(--sherbet);
-  font-size: var(--fs-small);
+  text-shadow: 0 0 18px rgba(255, 162, 76, 0.45);
 }
 
 /* Aviso de valija cerrada en /open. */
