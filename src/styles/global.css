@@ -182,9 +182,17 @@ img {
      la altura: con la valija en curso, su número, las personas y la cuenta
      regresiva, el hero tiene cuatro bloques más que antes, y la regla que
      gobierna sigue siendo que los cuatro tiers entren antes del fold. */
-  width: min(58vw, 25svh, 300px);
+  --suitcase-size: min(58vw, 25svh, 300px);
+  width: var(--suitcase-size);
   aspect-ratio: 1;
   flex: none;
+  /* La ilustración no llena su cuadro: el dibujo ocupa de 202 a 823 sobre 1024,
+     así que arriba y abajo quedan casi 20 puntos de imagen vacía. Con el 136%
+     de las capas eso son 8,8 puntos de la caja arriba y 8,7 abajo, y ese es el
+     hueco que separaba la valija del número y estiraba la página entera.
+     Se cancela acá: el aire entre bloques lo pone el gap del hero, que es una
+     decisión, y no el margen transparente de un archivo. */
+  margin-block: calc(var(--suitcase-size) * -0.088) calc(var(--suitcase-size) * -0.087);
 }
 
 .suitcase__fill,
@@ -709,7 +717,7 @@ img {
   }
 
   .suitcase {
-    width: min(58vw, 30svh, 400px);
+    --suitcase-size: min(58vw, 30svh, 400px);
   }
 
   .counter__number {
@@ -796,7 +804,7 @@ img {
    el hero completo no entra igual, pero al menos no se va a tres pantallas. */
 @media (max-height: 560px) and (min-width: 560px) {
   .suitcase {
-    width: min(30vh, 140px);
+    --suitcase-size: min(30vh, 140px);
   }
 
   .hero__prose {
@@ -945,35 +953,74 @@ img {
 }
 
 /* Tiene su lugar fijo y se lee. Es lo único que mete presión de tiempo, y en
-   gris apagado directamente no existía: va en blanco pleno y un escalón arriba
-   del cuerpo de texto.
+   gris apagado directamente no existía: va en blanco pleno, en la tipografía de
+   display, un escalón arriba del cuerpo de texto.
 
-   La altura está reservada con min-height. El primer render no sabe todavía
-   cuánto falta y la línea sale vacía; sin la reserva, el layout entero saltaría
-   cuando llega la respuesta. */
+   Tres renglones reservados con min-height, siempre los mismos:
+
+     my flight to japan leaves in
+     44 days, 8 hours,
+     12 minutes and 3 seconds
+
+   El primero es la frase fija, y los otros dos los corta el componente, no el
+   navegador. Con el corte automático, pasar de "3 seconds" a "13 seconds"
+   movería una palabra de un renglón al otro cada diez segundos. */
 .countdown {
-  font-family: var(--display);
-  font-size: clamp(1rem, 0.593vw + 0.867rem, 1.4rem);
-  line-height: 1.25;
-  color: var(--paper);
-  text-align: center;
-  text-wrap: balance;
-  letter-spacing: 0.01em;
-  /* Corta después de "leaves in": la cifra queda sola en su propio renglón. */
-  max-width: 30ch;
-  min-height: 2.5em;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 0.1em;
+  min-height: calc(1.3em * 3.4);
   margin: 0;
+  /* En la tipografía de cuerpo y no en la de display, por los números: en Bagel
+     Fat One el "1" mide 7,7 px donde el "4" mide 11,4, no tiene cifras de ancho
+     tabular y no hay forma de que un contador no baile. Familjen Grotesk las
+     tiene todas del mismo ancho de fábrica. El peso lo pone el bold y el
+     tamaño, y de paso la cuenta regresiva deja de competir con el título y con
+     el número grande, que sí son de display. */
+  font-family: var(--body);
+  font-weight: 700;
+  font-size: clamp(1.05rem, 0.667vw + 0.9rem, 1.5rem);
+  line-height: 1.3;
+  color: var(--paper);
+  text-align: center;
+  letter-spacing: 0.005em;
 }
 
-/* La cifra, con más peso que la parte fija de la frase. */
+/* La parte fija, un escalón más chica. La jerarquía la da el tamaño y no el
+   color: bajarle el contraste sería volver al gris tenue de antes. */
+.countdown__lead {
+  display: block;
+  font-size: 0.78em;
+}
+
 .countdown__value {
-  font-weight: inherit;
-  font-size: 1.12em;
-  /* "45 days and 6 hours" no se parte al medio. */
+  display: block;
+}
+
+/* Cada renglón entero, sin cortes internos. */
+.countdown__row {
+  display: block;
   white-space: nowrap;
+}
+
+/* La casilla de cada número: dos cifras de ancho, siempre. Sin esto,
+   "3 seconds" y "13 seconds" no miden lo mismo y la frase entera se corre de
+   lugar cada diez segundos.
+
+   Alineado a la derecha: con un solo dígito sobra el ancho de una cifra, y de
+   este lado ese sobrante cae después de la coma, donde se lee como aire, en vez
+   de meterse entre el número y su palabra. "8 hours" se sigue leyendo junto.
+
+   1ch es exactamente el ancho de una cifra acá, porque las cifras de esta
+   tipografía miden todas lo mismo. Con tres dígitos —más de cien días— la
+   casilla crece sola y se queda quieta ahí por un día entero. */
+.countdown__n {
+  display: inline-block;
+  min-width: 2ch;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
 }
 
 /* Menos de una semana: color de acento. */
@@ -989,33 +1036,6 @@ img {
   color: var(--mint);
   text-align: center;
   margin: 0;
-}
-
-/* La línea rotativa. La altura la reserva el contenedor sobre la frase más
-   larga, para que el layout no salte cuando cambia. */
-.rotating {
-  min-height: 2.7em;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  font-size: var(--fs-small);
-  color: var(--paper-dim);
-  max-width: 34ch;
-}
-
-.rotating__line {
-  transition: opacity 400ms ease;
-}
-
-.rotating__line--out {
-  opacity: 0;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .rotating__line {
-    transition: none;
-  }
 }
 
 /* El renglón que se mueve con cada aporte: gramos y porcentaje, misma fuente

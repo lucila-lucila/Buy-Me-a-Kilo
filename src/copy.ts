@@ -1,9 +1,17 @@
 import { gramsForDollars } from './config/suitcase'
-import { HOURS_TIER_MS, MINUTES_TIER_MS } from './config/countdown'
+import { MAX_UNITS, MAX_UNITS_REDUCED } from './config/countdown'
 import type { Countdown } from './lib/useCountdown'
 
-/** "1 hour" / "6 hours". Sin abreviar: la página no escribe "6h". */
-const plural = (n: number, word: string): string => `${n} ${word}${n === 1 ? '' : 's'}`
+/**
+ * Una unidad de la cuenta regresiva. Sale numerada y con la palabra aparte
+ * porque el número se dibuja en una casilla de ancho fijo: si "3 seconds" y
+ * "13 seconds" no ocupan lo mismo, la frase entera se corre cada diez segundos.
+ */
+export interface CountdownUnit {
+  n: number
+  /** Ya en plural o en singular, según corresponda. */
+  label: string
+}
 
 const WORDS = [
   'zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine',
@@ -33,24 +41,24 @@ export const copy = {
      */
     lead: "Fill a kilo, get a sticker. You don't get to pick which one.",
     /**
-     * El relato, apenas abajo del botón. No repite nada de lo que ya dijeron
-     * la valija, el número o la línea rotativa: el destino y el plazo viven
-     * arriba.
-     */
-    /**
-     * `{when}` lo completa el servidor. Hoy dice "five weeks", que es la frase
-     * escrita, pero cuando falten doce días va a decir doce días en vez de
-     * contradecir a la cuenta regresiva que está tres renglones más arriba.
+     * El cierre, al final de todo. Dos líneas y nada más.
+     *
+     * Ya no dice cuándo sale: eso lo dice la cuenta regresiva, con los segundos
+     * puestos, y una prosa que dijera "in six weeks" la estaría contradiciendo
+     * en la misma pantalla. Tampoco está más "that part is not your problem
+     * yet", que no agregaba nada.
      */
     prose: [
-      "There is one suitcase. It's mine. It leaves for Japan in {when}.",
-      'Then there will be another suitcase, and another country.',
-      'That part is not your problem yet.',
+      "There is one suitcase. It's mine.",
+      'Then there will be another one, and another country.',
     ],
     /**
      * La explicación del modelo, dicha con orgullo. Es lo que hace que nadie
      * sienta que lo estafaron cuando compra "un kilo" y ve subir tres gramos.
      * No sacar.
+     *
+     * Va debajo del botón, con la nota del precio: entre el mensaje central y
+     * el botón cortaba el camino al clic.
      */
     joke: 'a kilo costs about two hundred people. that is the whole joke.',
   },
@@ -64,28 +72,6 @@ export const copy = {
     overweight: 'The suitcase is now illegal. Continue anyway.',
   },
 
-  people: {
-    count: (n: number) => `${n.toLocaleString('en-US')} people so far`,
-    /**
-     * Declara el origen del arrastre en voz alta. Un número explicado es más
-     * fuerte que uno que aparece solo, y la página se sostiene sobre decir la
-     * verdad sobre sí misma. No sacar.
-     */
-    note: 'most of them before this page existed. they came from somewhere else.',
-  },
-
-  /**
-   * Un solo renglón que va alternando. Todo lo que antes eran cuatro bloques
-   * sueltos de texto entra acá de a uno: el hero deja de ser un muro.
-   *
-   * La cuenta regresiva NO está acá: tiene su lugar fijo. Escondida seis
-   * segundos de cada veinticuatro no crea ninguna urgencia.
-   */
-  rotating: {
-    origin: 'most of them arrived before this page existed',
-    next: 'next stop japan. after that, undecided.',
-  },
-
   countdown: {
     /**
      * En primera persona. No es "el avión": es su vuelo, y el plazo es de ella
@@ -95,38 +81,43 @@ export const copy = {
     lead: 'my flight to japan leaves in',
 
     /**
-     * La cifra, por tramos. Nunca hay segundos: son el recurso de las páginas
-     * de ofertas falsas y esa asociación no la queremos. Las horas tampoco
-     * aparecen todo el tiempo, solo cuando ya dicen algo.
+     * Las unidades, de la más grande a la más chica, sin las que están en cero
+     * arriba de todo: cuando no quedan días la frase empieza en horas sola.
      *
-     *   más de dos días   45 days and 6 hours
-     *   menos de dos días 34 hours
-     *   menos de tres     47 minutes
+     *   normal            44 days, 8 hours, 12 minutes and 3 seconds
+     *   sin días          8 hours, 12 minutes and 3 seconds
+     *   última hora       12 minutes and 3 seconds
+     *   movimiento red.   44 days and 8 hours
+     *
+     * Con movimiento reducido no hay segundero y se corta en dos unidades, que
+     * es lo que se puede decir sin que nada se mueva solo en pantalla.
      */
-    value: (c: Countdown): string => {
-      if (c.totalMs < MINUTES_TIER_MS) {
-        // Debajo del minuto no queda unidad más chica que decir sin caer en los
-        // segundos, así que se dice en palabras.
-        return c.minutes < 1 ? 'less than a minute' : plural(c.minutes, 'minute')
-      }
-      if (c.totalMs < HOURS_TIER_MS) return plural(c.totalHours, 'hour')
-      return c.hours > 0
-        ? `${plural(c.days, 'day')} and ${plural(c.hours, 'hour')}`
-        : plural(c.days, 'day')
+    units: (c: Countdown, reduced = false): CountdownUnit[] => {
+      const max = reduced ? MAX_UNITS_REDUCED : MAX_UNITS
+      const all = [
+        { n: c.days, word: 'day' },
+        { n: c.hours, word: 'hour' },
+        { n: c.minutes, word: 'minute' },
+        // Con movimiento reducido los segundos ni se calculan en la frase.
+        ...(reduced ? [] : [{ n: c.seconds, word: 'second' }]),
+      ]
+
+      const first = all.findIndex((u) => u.n > 0)
+      if (first === -1) return []
+
+      return all
+        .slice(first, first + max)
+        .map((u) => ({ n: u.n, label: u.n === 1 ? u.word : `${u.word}s` }))
     },
+
+    /**
+     * Abajo del minuto y con movimiento reducido no queda unidad que decir sin
+     * poner un segundero, así que se dice en palabras.
+     */
+    almost: 'less than a minute',
 
     /** En cero. Punto final: es la única frase de la página que lo lleva. */
     gone: 'the flight left.',
-
-    /** El mismo dato dentro de la prosa de abajo, en palabras y sin precisión. */
-    inline: (days: number) =>
-      days <= 0
-        ? 'a while ago'
-        : days === 1
-          ? 'a day'
-          : days < 14
-            ? `${asWord(days)} days`
-            : `${asWord(Math.round(days / 7))} weeks`,
   },
 
   support: {

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { MINUTES_TIER_MS } from '../config/countdown'
+import { TICK_MS, TICK_REDUCED_MS } from '../config/countdown'
 import type { Clock } from './useKilos'
 
 const HOUR = 3_600_000
@@ -8,43 +8,42 @@ const DAY = 86_400_000
 export interface Countdown {
   /** Lo que falta, en milisegundos. De acá sale todo lo demás. */
   totalMs: number
-  /** Días enteros, hacia abajo: 45 días y 6 horas son 45 días, no 46. */
+  /** Días enteros, hacia abajo: 44 días y 8 horas son 44 días, no 45. */
   days: number
-  /** Horas dentro del día en curso. */
+  /** Horas dentro del día en curso, minutos dentro de la hora, y así. */
   hours: number
-  /** Horas totales, para el tramo de menos de dos días. */
-  totalHours: number
   minutes: number
+  seconds: number
   departed: boolean
 }
 
 /**
  * La cuenta regresiva, descontando sola entre un fetch y el siguiente.
  *
- * No hay segundos en ningún tramo. Los segundos son el recurso de las páginas
- * de ofertas falsas y esa asociación no la queremos ni gratis: el número más
- * chico que llega a mostrarse es el minuto.
+ * Un solo temporizador en toda la página, y no le pide nada al servidor: el
+ * fetch de /api/kilos sigue siendo uno cada treinta segundos y lo único que
+ * trae es el ancla. Entre ancla y ancla esto resta tiempo transcurrido local.
  *
- * El ancla viene del servidor y se descuenta con tiempo transcurrido local, no
- * con la hora del reloj. El reloj del visitante puede estar corrido; los
- * milisegundos que pasan desde que llegó la respuesta, no.
+ * Se descuenta contra tiempo transcurrido y no contra la hora del reloj: el
+ * reloj del visitante puede estar corrido, los milisegundos que pasan desde que
+ * llegó la respuesta no.
+ *
+ * Vive en su propio componente justamente por el tick de un segundo: si el
+ * estado estuviera en App, la valija, la barra y el carrusel se volverían a
+ * renderizar sesenta veces por minuto para mover un dígito.
  */
-export function useCountdown(clock: Clock | null): Countdown | null {
+export function useCountdown(clock: Clock | null, live = true): Countdown | null {
   const [now, setNow] = useState(() => Date.now())
 
   useEffect(() => {
     if (clock === null) return
-
-    const left = clock.msRemaining - (Date.now() - clock.at)
-    // Arriba de tres horas el minuto no se muestra y alcanza con el poll de 30s
-    // que ya trae los kilos. Abajo, tickea acá para que el minuto baje aunque
-    // el fetch falle.
-    const step = left < MINUTES_TIER_MS ? 10_000 : 60_000
-
-    const id = window.setInterval(() => setNow(Date.now()), step)
+    // Un setInterval, no un setTimeout encadenado ni un requestAnimationFrame:
+    // el segundero no necesita precisión de cuadro y rAF no corre con la
+    // pestaña en segundo plano.
+    const id = window.setInterval(() => setNow(Date.now()), live ? TICK_MS : TICK_REDUCED_MS)
     setNow(Date.now())
     return () => window.clearInterval(id)
-  }, [clock])
+  }, [clock, live])
 
   if (clock === null) return null
 
@@ -54,8 +53,8 @@ export function useCountdown(clock: Clock | null): Countdown | null {
     totalMs,
     days: Math.floor(totalMs / DAY),
     hours: Math.floor((totalMs % DAY) / HOUR),
-    totalHours: Math.floor(totalMs / HOUR),
     minutes: Math.floor((totalMs % HOUR) / 60_000),
+    seconds: Math.floor((totalMs % 60_000) / 1000),
     departed: totalMs <= 0,
   }
 }

@@ -20,7 +20,7 @@ const DEV_DEPARTURE = '2026-10-22T00:00:00-03:00'
  *   /?days=45&hours=6 cambia la cuenta regresiva (los tres se suman)
  *   /?days=5          menos de una semana: color de acento
  *   /?hours=30        menos de dos días: la cuenta pasa a horas
- *   /?minutes=47      menos de tres horas: minutos, descontando solos
+ *   /?minutes=1&seconds=11  para mirar el segundero cruzar de dos cifras a una
  *   /?overweight      pasada de 23 kilos
  *   /?departed        el vuelo ya salió
  *
@@ -55,14 +55,17 @@ function mockApi(): Plugin {
           const gramsTotal = q.has('overweight') ? 24_100 : num('g', DEV_GRAMS)
 
           // La cuenta regresiva sale de los milisegundos, igual que en
-          // producción. Los tres overrides se suman, así que ?days=45&hours=6
+          // producción. Los cuatro overrides se suman, así que ?days=45&hours=6
           // da la frase completa y ?hours=30 solo, el tramo de horas.
           const realMs = Math.max(0, new Date(DEV_DEPARTURE).getTime() - Date.now())
-          const forced = ['days', 'hours', 'minutes'].some((k) => q.has(k))
+          const forced = ['days', 'hours', 'minutes', 'seconds'].some((k) => q.has(k))
           const msRemaining = q.has('departed')
             ? 0
             : forced
-              ? num('days', 0) * 86_400_000 + num('hours', 0) * 3_600_000 + num('minutes', 0) * 60_000
+              ? num('days', 0) * 86_400_000 +
+                num('hours', 0) * 3_600_000 +
+                num('minutes', 0) * 60_000 +
+                num('seconds', 0) * 1000
               : realMs
           const days = Math.ceil(msRemaining / 86_400_000)
 
