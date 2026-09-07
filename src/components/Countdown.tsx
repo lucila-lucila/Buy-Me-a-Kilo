@@ -13,9 +13,18 @@ import type { Clock } from '../lib/useKilos'
  * el resto de la página sesenta veces por minuto para mover un dígito. Acá el
  * que se vuelve a dibujar es este párrafo y nada más.
  *
- * Cada número va en su propia casilla de ancho fijo (.countdown__n) y con
- * tabular-nums. Sin eso, "3 seconds" y "13 seconds" no ocupan lo mismo y la
- * frase entera se corre de lugar cada diez segundos.
+ * Sale de una sola pieza: la frase fija y los números son dos bloques que no se
+ * cortan por dentro. Si entran los dos en el ancho, van en un renglón; si no,
+ * el navegador los apila y quedan la frase entera arriba y todos los números
+ * juntos abajo. Ningún corte pasa nunca entre un número y el siguiente.
+ *
+ * Los números van en cifras de ancho tabular: en Familjen Grotesk todas las
+ * cifras miden lo mismo, así que el segundo que pasa de 38 a 37 no mueve nada.
+ * Cuando un tramo cruza de dos cifras a una —una vez por minuto en los
+ * segundos— la frase se recentra medio dígito, y eso es lo que hace cualquier
+ * cuenta regresiva. Reservar el ancho de la cifra que falta lo evitaría, pero
+ * deja un hueco permanente después de la coma que se lee como un error de
+ * espaciado, y se ve mucho más que el recentrado.
  *
  * Los que leen con lector de pantalla reciben la versión gruesa, sin segundos:
  * un aria-live que se actualiza una vez por segundo es inusable.
@@ -40,41 +49,22 @@ export function Countdown({ clock }: { clock: Clock | null }) {
       ? copy.countdown.almost
       : coarse.map((u) => `${u.n} ${u.label}`).join(' and ')
 
-  // Los separadores se calculan sobre la lista entera y después se parte en
-  // renglones: "44 days, 8 hours, 12 minutes and 3 seconds", sin coma antes
+  // "44 days, 8 hours, 12 minutes and 3 seconds": coma entre todos menos antes
   // del "and".
-  const parts = units.map((u, i) => ({
-    ...u,
-    sep: i === units.length - 1 ? '' : i === units.length - 2 ? ' and ' : ', ',
-  }))
-
-  // El corte de renglón es nuestro y no del navegador. Si dejáramos que la
-  // frase se acomodara sola, el salto de "3 seconds" a "13 seconds" movería
-  // una palabra de un renglón al otro cada diez segundos. Los dos últimos
-  // tramos van siempre juntos abajo.
-  const rows = parts.length > 2 ? [parts.slice(0, -2), parts.slice(-2)] : [parts]
+  const sep = (i: number) => (i === units.length - 1 ? '' : i === units.length - 2 ? ' and ' : ', ')
 
   return (
     <p className={`countdown${urgent ? ' countdown--soon' : ''}`}>
       <span className="countdown__lead">{copy.countdown.lead}</span>
       <span className="countdown__value" aria-hidden="true">
-        {parts.length === 0 ? (
-          <span className="countdown__row">{copy.countdown.almost}</span>
-        ) : (
-          rows.map((row) => (
-            <span className="countdown__row" key={row[0].label}>
-              {row.map((u) => (
-                <Fragment key={u.label}>
-                  {/* El espacio explícito: JSX se come el que hay entre un
-                      elemento y una expresión en el renglón siguiente. */}
-                  <span className="countdown__n">{u.n}</span>{' '}
-                  {u.label}
-                  {u.sep}
-                </Fragment>
-              ))}
-            </span>
-          ))
-        )}
+        {units.length === 0
+          ? copy.countdown.almost
+          : units.map((u, i) => (
+              <Fragment key={u.label}>
+                {u.n} {u.label}
+                {sep(i)}
+              </Fragment>
+            ))}
       </span>
       <span className="sr-only">{spoken}</span>
     </p>

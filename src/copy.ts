@@ -142,6 +142,14 @@ export const copy = {
 
   footer: {
     lines: ['No account. No email. No newsletter.', 'You will never hear from me again.'],
+    /**
+     * La red de seguridad de todo el circuito. El único camino al sticker es el
+     * mensaje de gracias de Ko-fi, y quien cierre esa pestaña lo pierde para
+     * siempre. Chiquito y al pie: no es una invitación, es una salida de
+     * emergencia. Que además entre alguien que no pagó ya estaba asumido, y la
+     * propia /open lo dice en voz alta.
+     */
+    openLink: 'already paid? open your sticker',
     /** Una línea más chica y más tibia, en el mismo registro seco. */
     signature: 'made by hand, in the dark, at an hour that was not reasonable.',
   },
