@@ -1,5 +1,4 @@
 import { gramsForDollars } from './config/suitcase'
-import { MAX_UNITS, MAX_UNITS_REDUCED } from './config/countdown'
 import type { Countdown } from './lib/useCountdown'
 
 /**
@@ -74,39 +73,26 @@ export const copy = {
     lead: 'my flight to japan leaves in',
 
     /**
-     * Las unidades, de la más grande a la más chica, sin las que están en cero
-     * arriba de todo: cuando no quedan días la frase empieza en horas sola.
+     * La unidad que se dice, que es una sola: los días.
      *
-     *   normal            44 days, 8 hours, 12 minutes and 3 seconds
-     *   sin días          8 hours, 12 minutes and 3 seconds
-     *   última hora       12 minutes and 3 seconds
-     *   movimiento red.   44 days and 8 hours
+     *   44 days
+     *   8 hours      el último día, cuando ya no quedan días
+     *   12 minutes   la última hora
      *
-     * Con movimiento reducido no hay segundero y se corta en dos unidades, que
-     * es lo que se puede decir sin que nada se mueva solo en pantalla.
+     * Se toma la primera que no está en cero. Decir "0 days, 8 hours" el último
+     * día sería peor que bajar de unidad, y decir "0 days" solo, mucho peor.
      */
-    units: (c: Countdown, reduced = false): CountdownUnit[] => {
-      const max = reduced ? MAX_UNITS_REDUCED : MAX_UNITS
+    units: (c: Countdown): CountdownUnit[] => {
       const all = [
         { n: c.days, word: 'day' },
         { n: c.hours, word: 'hour' },
         { n: c.minutes, word: 'minute' },
-        // Con movimiento reducido los segundos ni se calculan en la frase.
-        ...(reduced ? [] : [{ n: c.seconds, word: 'second' }]),
       ]
-
-      const first = all.findIndex((u) => u.n > 0)
-      if (first === -1) return []
-
-      return all
-        .slice(first, first + max)
-        .map((u) => ({ n: u.n, label: u.n === 1 ? u.word : `${u.word}s` }))
+      const first = all.find((u) => u.n > 0)
+      return first === undefined ? [] : [{ n: first.n, label: first.n === 1 ? first.word : `${first.word}s` }]
     },
 
-    /**
-     * Abajo del minuto y con movimiento reducido no queda unidad que decir sin
-     * poner un segundero, así que se dice en palabras.
-     */
+    /** El último minuto. No hay segundero, así que se dice en palabras. */
     almost: 'less than a minute',
 
     /** En cero. Punto final: es la única frase de la página que lo lleva. */
