@@ -6,7 +6,7 @@
  * dibujado y el porcentaje no coinciden, es un bug.
  *
  *   personas que aportaron
- *     -> gramos que suman sus tiers
+ *     -> gramos que suman sus aportes
  *       -> gramos totales (+ SEED_GRAMS)
  *         -> percentFull = gramos / 23000
  *           -> altura del relleno, barra, kilos y porcentaje en pantalla
@@ -16,8 +16,7 @@ import { envInt, envText } from './env.js'
 
 /**
  * Arrastre inicial: 289 aportes reales que llegaron por redes antes de que esta
- * página existiera. 1.309 g salen de 289 personas por 1,51 unidades por 3
- * gramos. La valija arranca al 5,7%, y está bien que se vea poco llena: hay
+ * página existiera. 1.309 g es la conversión de lo que aportaron. La valija arranca al 5,7%, y está bien que se vea poco llena: hay
  * cinco semanas por delante y una barra casi llena no tiene nada que contar.
  *
  * Se suma al leer y no se escribe en KV, así el contador del webhook sigue

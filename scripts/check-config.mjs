@@ -2,21 +2,24 @@
 /**
  * Avisa en el log del build qué falta configurar antes de que la página sirva
  * para cobrar. Por defecto no cancela el build: mientras se está mirando el
- * diseño conviene poder deployar con los botones apagados.
+ * diseño conviene poder deployar igual.
  *
- * Cuando salga a la calle, poné REQUIRE_KOFI_CONFIG=1 en Vercel y a partir de
- * ahí un deploy sin los códigos de Ko-fi cargados falla en vez de publicar
- * cuatro botones que no llevan a ningún lado.
+ * Con REQUIRE_KOFI_CONFIG=1 pasa a cancelar, para el día que salga a la calle.
  */
 import { readFileSync } from 'node:fs'
 
-const source = readFileSync('src/config/tiers.ts', 'utf8')
-
-const placeholders = [...source.matchAll(/kofiItemCode:\s*'(PLACEHOLDER_[A-Z]+)'/g)].map((m) => m[1])
-const username = source.match(/export const KOFI_USERNAME = '([^']*)'/)?.[1] ?? ''
-
-/** Env vars que ya no hace nada tener cargadas. Ver DEPRECATED_ENV en economy.ts. */
-const DEPRECATED_ENV = ['EXPECTED_NET_TICKET', 'KOFI_USERNAME']
+/** Env vars que ya no hacen nada. Duplica DEPRECATED_ENV de economy.ts. */
+const DEPRECATED_ENV = [
+  'EXPECTED_NET_TICKET',
+  'KOFI_USERNAME',
+  'WEEKS_REMAINING',
+  'SEED_KILOS',
+  'OVERWEIGHT_SHIPPING_CENTS',
+  'KOFI_ITEM_ONE',
+  'KOFI_ITEM_THREE',
+  'KOFI_ITEM_CARRY',
+  'KOFI_ITEM_OVERWEIGHT',
+]
 
 /**
  * Una env var que existe pero está vacía es peor que una ausente: aparece
@@ -32,16 +35,33 @@ const EMPTY_MATTERS = [
   'KOFI_VERIFICATION_TOKEN',
   'SEED_GRAMS',
   'SEED_PEOPLE',
+  'TARGET_PEOPLE',
   'DEPARTURE_DATE',
 ]
 
+const source = readFileSync('src/config/kofi.ts', 'utf8')
+const username = source.match(/export const KOFI_USERNAME = '([^']*)'/)?.[1] ?? ''
+
 const warnings = []
+
+if (!username) {
+  warnings.push('KOFI_USERNAME vacío en src/config/kofi.ts: el botón no lleva a ningún lado')
+}
+
+// Sin este token el webhook rechaza todo y el contador no sube nunca.
+if (!process.env.KOFI_VERIFICATION_TOKEN) {
+  warnings.push(
+    'KOFI_VERIFICATION_TOKEN sin cargar: la página anda y los pagos entran, pero el ' +
+      'contador no se mueve solo. Se corrige después subiendo SEED_GRAMS y SEED_PEOPLE.',
+  )
+}
 
 // La fecha del vuelo: si no parsea, la cuenta regresiva miente en silencio.
 const departure = process.env.DEPARTURE_DATE?.trim()
 if (departure && Number.isNaN(new Date(departure).getTime())) {
   warnings.push(`DEPARTURE_DATE no es una fecha válida: "${departure}". Se usa la de respaldo.`)
 }
+
 const empty = EMPTY_MATTERS.filter((k) => process.env[k] === '')
 if (empty.length > 0) {
   warnings.push(
@@ -57,31 +77,16 @@ if (stale.length > 0) {
       'Se pueden borrar de Vercel cuando pases; el deploy anda igual.',
   )
 }
-if (placeholders.length > 0) {
-  warnings.push(
-    `${placeholders.length} de 4 tiers sin direct_link_code de Ko-fi: ${placeholders.join(', ')}`,
-  )
-}
-if (!username) {
-  warnings.push('KOFI_USERNAME vacío: los tiers sin código quedan sin link, apagados en la página')
-}
 
 if (warnings.length === 0) {
-  console.log('check-config: ok, los cuatro tiers apuntan a un item de Ko-fi')
+  console.log(`check-config: ok, el botón apunta a ko-fi.com/${username} y el webhook está conectado`)
   process.exit(0)
 }
 
 const fatal = process.env.REQUIRE_KOFI_CONFIG === '1'
-const label = fatal ? 'check-config: falta configurar Ko-fi' : 'check-config: aviso'
-console[fatal ? 'error' : 'warn'](`\n${label}\n`)
+console[fatal ? 'error' : 'warn'](`\n${fatal ? 'check-config: falta configurar' : 'check-config: aviso'}\n`)
 for (const w of warnings) console[fatal ? 'error' : 'warn'](`  ${w}`)
-const degraded = username
-  ? `Los tiers sin código llevan al perfil (ko-fi.com/${username}) en vez de a su item.`
-  : 'Los tiers sin código quedan apagados, con "The shop is not open yet." bajo la escalera.'
-
 console[fatal ? 'error' : 'warn'](
-  fatal
-    ? '\nCargá los códigos en src/config/tiers.ts. El build queda cancelado.\n'
-    : `\nLa página deploya igual. ${degraded}\n`,
+  fatal ? '\nRevisá lo de arriba. El build queda cancelado.\n' : '\nLa página deploya igual.\n',
 )
 process.exit(fatal ? 1 : 0)

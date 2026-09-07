@@ -2,8 +2,12 @@
  * Dashboard privado. GET /api/stats?key=<STATS_SECRET>
  *
  * Sin key válida devuelve 404 con el mismo cuerpo que un 404 real: no tiene que
- * notarse que el endpoint existe. Nada de lo que sale de acá se muestra nunca
- * en la página pública.
+ * notarse que el endpoint existe. Nada de lo que sale de acá se muestra nunca en
+ * la página pública.
+ *
+ * Ya no hay sección de mezcla ni de desviación. Esa mezcla nunca fue un dato
+ * medido sino una estimación, y con montos libres no hay escalera que comparar:
+ * el ticket promedio real, semana a semana, es la única pregunta que informa.
  */
 import { pipeline, toInt, describeKvEnv } from './_lib/redis.js'
 import { K } from './_lib/keys.js'
@@ -17,18 +21,7 @@ import {
   departureDate,
 } from './_lib/journey.js'
 import { envText } from './_lib/env.js'
-import { TIERS, type TierId } from '../src/config/tiers.js'
-import {
-  KOFI_PCT,
-  PAYPAL_PCT,
-  PAYPAL_FIXED_CENTS,
-  OVERWEIGHT_SHIPPING_CENTS,
-  TIER_PRICE_CENTS,
-  EXPECTED_MIX,
-  EXPECTED_NET_TICKET_CENTS,
-  TARGETS,
-  netCentsForTier,
-} from './_lib/economy.js'
+import { KOFI_PCT, PAYPAL_PCT, PAYPAL_FIXED_CENTS, TARGETS } from './_lib/economy.js'
 
 export const config = { runtime: 'edge' }
 
@@ -45,18 +38,15 @@ function safeEqual(a: string, b: string): boolean {
 }
 
 const usd = (cents: number) => Math.round(cents) / 100
-const pct = (n: number, d: number) => (d > 0 ? Math.round((n / d) * 1000) / 10 : 0)
 
 /**
- * Neto sobre un agregado. El porcentual escala con el bruto; la comisión fija
- * de PayPal es por transacción, así que necesita la cantidad de aportes.
- * `overweightCount` descuenta el envío del sticker físico.
+ * Neto sobre un agregado. El porcentual escala con el bruto; la comisión fija de
+ * PayPal es por transacción, así que necesita la cantidad de aportes.
  */
-function netOf(grossCents: number, contribs: number, overweightCount: number): number {
+function netOf(grossCents: number, contribs: number): number {
   const variable = grossCents * (KOFI_PCT + PAYPAL_PCT)
   const fixed = PAYPAL_FIXED_CENTS * contribs
-  const shipping = OVERWEIGHT_SHIPPING_CENTS * overweightCount
-  return Math.max(0, Math.round(grossCents - variable - fixed - shipping))
+  return Math.max(0, Math.round(grossCents - variable - fixed))
 }
 
 export default async function handler(req: Request): Promise<Response> {
@@ -84,7 +74,6 @@ export default async function handler(req: Request): Promise<Response> {
     ['GET', K.shareGenerated],
     ['GET', K.stickerSerial],
   ]
-  for (const t of TIERS) reads.push(['GET', K.tierTotal(t.kilos)], ['GET', K.tierWeek(t.kilos, week)])
   for (const w of prev) reads.push(['GET', K.grossWeek(w)], ['GET', K.contribWeek(w)], ['GET', K.weekGrams(w)])
 
   let raw: unknown[]
@@ -114,33 +103,26 @@ export default async function handler(req: Request): Promise<Response> {
   const shareGenerated = toInt(raw[i++])
   const stickersHandedOut = toInt(raw[i++])
 
-  const tierTotals = {} as Record<TierId, number>
-  const tierWeeks = {} as Record<TierId, number>
-  for (const t of TIERS) {
-    tierTotals[t.id] = toInt(raw[i++])
-    tierWeeks[t.id] = toInt(raw[i++])
-  }
+  const history = prev.map((w) => ({
+    week: w,
+    grossCents: toInt(raw[i++]),
+    contribs: toInt(raw[i++]),
+    grams: toInt(raw[i++]),
+  }))
 
-  const history = prev.map((w) => {
-    const gross = toInt(raw[i++])
-    const contribs = toInt(raw[i++])
-    const grams = toInt(raw[i++])
-    return { week: w, grossCents: gross, contribs, grams }
-  })
-
-  const netTotal = netOf(grossTotal, contribTotal, tierTotals.overweight)
-  const netWeek = netOf(grossWeek, contribWeek, tierWeeks.overweight)
+  const netTotal = netOf(grossTotal, contribTotal)
+  const netWeek = netOf(grossWeek, contribWeek)
 
   // Proyección al ritmo de las últimas 3 semanas cerradas.
   const closed = history.filter((h) => h.contribs > 0)
   const avgWeeklyNet =
-    closed.length > 0
-      ? closed.reduce((sum, h) => sum + netOf(h.grossCents, h.contribs, 0), 0) / closed.length
-      : 0
+    closed.length > 0 ? closed.reduce((s, h) => s + netOf(h.grossCents, h.contribs), 0) / closed.length : 0
   const avgWeeklyContribs =
     closed.length > 0 ? closed.reduce((s, h) => s + h.contribs, 0) / closed.length : 0
 
-  const netTicketWeek = contribWeek > 0 ? Math.round(netWeek / contribWeek) : 0
+  const daysLeft = Math.max(0, Math.ceil((departureDate().getTime() - Date.now()) / 86_400_000))
+  const weeksLeft = weeksRemaining(daysLeft)
+
   const floorOf = (n: number) =>
     n >= TARGETS.jackpot ? 'jackpot' : n >= TARGETS.real ? 'real' : n >= TARGETS.floor ? 'floor' : 'below_floor'
 
@@ -160,36 +142,20 @@ export default async function handler(req: Request): Promise<Response> {
       },
 
       grams: { total: totalGrams, week: weekGrams },
-
       gross: { totalUsd: usd(grossTotal), weekUsd: usd(grossWeek) },
       netEstimated: { totalUsd: usd(netTotal), weekUsd: usd(netWeek) },
       contributions: { total: contribTotal, week: contribWeek },
 
+      /**
+       * El ticket promedio real, sin comparar contra ninguna estimación. Con
+       * montos libres, cómo evoluciona semana a semana es la única pregunta que
+       * tiene sentido: `history` de abajo tiene las tres anteriores.
+       */
       avgTicket: {
         grossTotalUsd: contribTotal > 0 ? usd(grossTotal / contribTotal) : 0,
         netTotalUsd: contribTotal > 0 ? usd(netTotal / contribTotal) : 0,
-        netWeekUsd: usd(netTicketWeek),
-        // Sale de la mezcla esperada y de las comisiones cargadas, siempre.
-        expectedNetUsd: usd(EXPECTED_NET_TICKET_CENTS),
-        // Desviación de la semana contra el neto promedio esperado (5,66).
-        deviationPct:
-          contribWeek > 0
-            ? Math.round(((netTicketWeek - EXPECTED_NET_TICKET_CENTS) / EXPECTED_NET_TICKET_CENTS) * 1000) / 10
-            : null,
+        netWeekUsd: contribWeek > 0 ? usd(netWeek / contribWeek) : 0,
       },
-
-      mix: TIERS.map((t) => ({
-        tier: t.id,
-        label: t.label,
-        kilos: t.kilos,
-        priceUsd: usd(TIER_PRICE_CENTS[t.id]),
-        netPerSaleUsd: usd(netCentsForTier(t.id)),
-        countTotal: tierTotals[t.id],
-        countWeek: tierWeeks[t.id],
-        sharePct: pct(tierTotals[t.id], contribTotal),
-        expectedPct: EXPECTED_MIX[t.id] * 100,
-        deltaPct: Math.round((pct(tierTotals[t.id], contribTotal) - EXPECTED_MIX[t.id] * 100) * 10) / 10,
-      })),
 
       // Echo de la configuración, para verificar que las env vars llegaron.
       config: {
@@ -197,7 +163,6 @@ export default async function handler(req: Request): Promise<Response> {
         kofiPct: KOFI_PCT,
         paypalPct: PAYPAL_PCT,
         paypalFixedUsd: usd(PAYPAL_FIXED_CENTS),
-        overweightShippingUsd: usd(OVERWEIGHT_SHIPPING_CENTS),
       },
 
       floor: {
@@ -207,17 +172,12 @@ export default async function handler(req: Request): Promise<Response> {
       },
 
       projection: {
-        // Sale de DEPARTURE_DATE: la proyección mira el vuelo real.
-        weeksRemaining: weeksRemaining(
-          Math.max(0, Math.ceil((departureDate().getTime() - Date.now()) / 86_400_000)),
-        ),
+        daysRemaining: daysLeft,
+        weeksRemaining: weeksLeft,
         basedOnWeeks: closed.length,
         avgWeeklyNetUsd: usd(avgWeeklyNet),
         avgWeeklyContributions: Math.round(avgWeeklyContribs * 10) / 10,
-        projectedNetUsd: usd(
-          avgWeeklyNet *
-            weeksRemaining(Math.max(0, Math.ceil((departureDate().getTime() - Date.now()) / 86_400_000))),
-        ),
+        projectedNetUsd: usd(avgWeeklyNet * weeksLeft),
       },
 
       distribution: {
@@ -231,7 +191,7 @@ export default async function handler(req: Request): Promise<Response> {
       },
 
       // Si esto sube, hay algo mal configurado en Ko-fi: son pagos que entraron
-      // en otra moneda y por eso no sumaron kilos.
+      // en otra moneda y por eso no sumaron gramos.
       alerts: {
         nonUsdPayments: otherCurrency,
         nonUsdIsSuspicious: otherCurrency > 0,

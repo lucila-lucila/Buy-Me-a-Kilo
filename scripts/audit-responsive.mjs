@@ -20,7 +20,7 @@ const BASE = process.env.AUDIT_URL ?? 'http://localhost:5173'
 /** Las dos páginas. /open se había quedado afuera y ahí apareció un scroll. */
 const PAGES = [
   { label: 'landing', path: '/', wait: 1200 },
-  { label: 'a punto', path: '/?straining', wait: 1200 },
+  { label: 'a mitad', path: '/?g=11500', wait: 1200 },
   { label: '/open', path: '/open?sticker=sticker_11', wait: 4200 },
 ]
 
@@ -66,7 +66,8 @@ for (const pg of PAGES) for (const vp of VIEWPORTS) {
 
   const r = await page.evaluate(() => {
     const doc = document.documentElement
-    const last = document.querySelector('.tier[data-tier=overweight]')
+    // Con los tiers afuera, el último elemento del fold es el botón.
+    const last = document.querySelector('.support')
     const lastBottom = last ? Math.round(last.getBoundingClientRect().bottom) : null
 
     // Texto que se sale de su caja.
@@ -101,7 +102,7 @@ for (const pg of PAGES) for (const vp of VIEWPORTS) {
   if (r.overflowing.length) problems.push(`texto desbordado (${r.overflowing.length})`)
   if (errors.length) problems.push(`errores de consola (${errors.length})`)
   if (r.lastBottom !== null && !foldOk && !vp.foldOptional) {
-    problems.push(`tiers cortados (${r.lastBottom} > ${vp.h})`)
+    problems.push(`botón cortado (${r.lastBottom} > ${vp.h})`)
   }
 
   if (problems.length) failures++
@@ -122,7 +123,7 @@ for (const pg of PAGES) for (const vp of VIEWPORTS) {
 await browser.close()
 
 const pad = (v, n) => String(v).padEnd(n)
-console.log(`\n${pad('viewport', 11)}${pad('', 26)}${pad('tiers/fold', 13)}${pad('carrusel', 12)}estado`)
+console.log(`\n${pad('viewport', 11)}${pad('', 26)}${pad('botón/fold', 13)}${pad('carrusel', 12)}estado`)
 console.log('-'.repeat(88))
 for (const r of rows) {
   console.log(`${pad(r.vp, 11)}${pad(r.name, 26)}${pad(r.fold, 13)}${pad(r.speed, 12)}${r.estado}`)

@@ -2,6 +2,10 @@
 /**
  * Verifica que nada de la capa de economía haya terminado en dist/.
  *
+ * Los montos dejaron de estar en la lista: los precios ahora se muestran en la
+ * página, así que encontrar uno no es una fuga. Lo que sigue sin poder llegar al
+ * cliente son las comisiones, los pisos semanales, TARGET_PEOPLE y los tokens.
+ *
  * Corre en postbuild y falla el build si encuentra algo. No es cosmético: Vite
  * inlina en el bundle cualquier cosa que un módulo de src/ importe, así que un
  * import descuidado desde un componente publicaría la tabla de precios entera.
@@ -16,8 +20,6 @@ const FORBIDDEN = [
   'TIER_PRICE_CENTS',
   'AMOUNT_LADDER',
   'EXPECTED_MIX',
-  'EXPECTED_NET_TICKET',
-  'OVERWEIGHT_SHIPPING_CENTS',
   'PAYPAL_FIXED_CENTS',
   'PAYPAL_PCT',
   'KOFI_PCT',
@@ -27,45 +29,20 @@ const FORBIDDEN = [
   'TARGET_REAL_WEEKLY',
   'TARGET_JACKPOT_WEEKLY',
   'WEEKS_REMAINING',
-  'netCentsForTier',
-  'kilosForAmountCents',
-  'shopCodeToKilos',
+  // La meta interna de personas: se decide en el dashboard, no en la página.
+  'TARGET_PEOPLE',
   'gross_cents',
-  'count_tier',
   'KV_REST_API_TOKEN',
   'UPSTASH_REDIS_REST_TOKEN',
-  // El neto promedio esperado por aporte.
-  '5.66',
-  // Los precios formateados, por si alguno se escribe a mano en un componente.
-  '$5',
-  '$12',
-  '$25',
-  '$50',
-  '5.00',
-  '12.00',
-  '25.00',
-  '50.00',
 ]
-
-/**
- * Los cuatro precios en centavos sueltos son números comunes y darían falsos
- * positivos, pero los cuatro juntos en un mismo archivo son la tabla de precios
- * y nada más.
- */
-const PRICE_CENTS = ['500', '1200', '2500', '5000']
 
 /** Las env vars que solo pueden existir del lado del servidor. Ver .env.example. */
 const ECONOMY_ENV = [
   'KOFI_VERIFICATION_TOKEN',
   'KOFI_PCT',
-  'KOFI_ITEM_ONE',
-  'KOFI_ITEM_THREE',
-  'KOFI_ITEM_CARRY',
-  'KOFI_ITEM_OVERWEIGHT',
+  'TARGET_PEOPLE',
   'PAYPAL_PCT',
   'PAYPAL_FIXED_CENTS',
-  'OVERWEIGHT_SHIPPING_CENTS',
-  'EXPECTED_NET_TICKET',
   'TARGET_FLOOR_WEEKLY',
   'TARGET_REAL_WEEKLY',
   'TARGET_JACKPOT_WEEKLY',
@@ -92,10 +69,6 @@ for (const file of files) {
   const source = readFileSync(file, 'utf8')
   for (const needle of FORBIDDEN) {
     if (source.includes(needle)) findings.push(`${relative('.', file)}: "${needle}"`)
-  }
-  const hits = PRICE_CENTS.filter((cents) => new RegExp(`(?<!\\d)${cents}(?!\\d)`).test(source))
-  if (hits.length === PRICE_CENTS.length) {
-    findings.push(`${relative('.', file)}: la tabla de precios entera (${hits.join(', ')})`)
   }
 }
 

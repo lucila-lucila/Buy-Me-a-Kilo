@@ -120,7 +120,7 @@ img {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: clamp(0.12rem, 0.75svh, 0.6rem);
+  gap: clamp(0.4rem, 1.6svh, 1rem);
 }
 
 .hero__title {
@@ -182,7 +182,7 @@ img {
      la altura: con la valija en curso, su número, las personas y la cuenta
      regresiva, el hero tiene cuatro bloques más que antes, y la regla que
      gobierna sigue siendo que los cuatro tiers entren antes del fold. */
-  width: min(44vw, 16svh, 240px);
+  width: min(58vw, 25svh, 300px);
   aspect-ratio: 1;
   flex: none;
 }
@@ -275,7 +275,7 @@ img {
   align-items: baseline;
   gap: 0.3rem;
   font-family: var(--display);
-  font-size: clamp(1.4rem, 7vw, 2rem);
+  font-size: clamp(1.7rem, 8.5vw, 2.4rem);
   line-height: 0.95;
   letter-spacing: -0.02em;
   /* Como filtro y no como text-shadow: los digitos van en columnas con overflow
@@ -385,127 +385,6 @@ img {
   text-align: center;
   font-size: var(--fs-small);
   margin: 0;
-}
-
-/* ----------------------------------------------------------------- tiers -- */
-
-/* Los cuatro siempre visibles y del mismo tamaño. El de tres kilos se destaca
-   por tratamiento —borde y glow— y no por ocupar más espacio: así la escalera se
-   compara de un vistazo, que es lo que hace que alguien suba un escalón. */
-.tiers {
-  display: grid;
-  width: 100%;
-  gap: var(--gap);
-  grid-template-columns: 1fr;
-  align-items: stretch;
-  margin-top: 0.25rem;
-}
-
-.tier {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  grid-template-areas:
-    'label label'
-    'note kilos';
-  align-items: end;
-  gap: 0.15rem 0.6rem;
-  padding: clamp(0.3rem, 0.9svh, 0.6rem) 0.8rem;
-  border: 1px solid var(--hairline);
-  border-radius: 16px;
-  background: rgba(255, 246, 236, 0.03);
-  text-decoration: none;
-  transition:
-    border-color 180ms ease,
-    background 180ms ease,
-    transform 180ms ease;
-}
-
-.tier:hover {
-  background: rgba(255, 246, 236, 0.07);
-  transform: translateY(-1px);
-}
-
-.tier__label {
-  grid-area: label;
-  font-family: var(--display);
-  font-weight: 400;
-  line-height: 1.05;
-  font-size: var(--fs-body);
-}
-
-.tier__note {
-  grid-area: note;
-  font-size: var(--fs-micro);
-  line-height: 1.25;
-  color: var(--paper-faint);
-}
-
-/* El dato ancla: lo segundo más grande de la ficha, después del nombre. */
-.tier__kilos {
-  grid-area: kilos;
-  justify-self: end;
-  font-family: var(--display);
-  font-size: var(--fs-body);
-  line-height: 1;
-  color: var(--paper-dim);
-  white-space: nowrap;
-}
-
-.tier--three {
-  border-color: var(--bubblegum);
-  background: linear-gradient(rgba(255, 79, 163, 0.14), rgba(255, 79, 163, 0.05));
-  box-shadow: 0 0 26px rgba(255, 79, 163, 0.2);
-}
-
-.tier--three:hover {
-  background: linear-gradient(rgba(255, 79, 163, 0.22), rgba(255, 79, 163, 0.08));
-}
-
-.tier--three .tier__note,
-.tier--three .tier__kilos {
-  color: var(--paper-dim);
-}
-
-.tier--one {
-  border-color: rgba(123, 240, 200, 0.4);
-}
-
-.tier--one:hover {
-  border-color: var(--mint);
-}
-
-.tier--carry {
-  border-color: rgba(59, 123, 255, 0.45);
-}
-
-.tier--carry:hover {
-  border-color: var(--electric);
-}
-
-.tier--over {
-  border-color: rgba(255, 162, 76, 0.45);
-}
-
-.tier--over:hover {
-  border-color: var(--sherbet);
-}
-
-/* Tier sin item de Ko-fi cargado: se ve, no se puede clickear. */
-.tier--off {
-  opacity: 0.45;
-  cursor: default;
-}
-
-.tier--off:hover {
-  transform: none;
-}
-
-.tiers__note {
-  grid-column: 1 / -1;
-  margin: 0;
-  font-size: var(--fs-micro);
-  color: var(--paper-faint);
-  text-align: center;
 }
 
 /* ------------------------------------------------------------- carrusel -- */
@@ -801,7 +680,7 @@ img {
 /* ==========================================================================
    Breakpoints. Solo tres, y cada uno responde a una pregunta distinta:
 
-   1. ANCHO (620px)   ¿entran dos columnas de tiers al lado?
+   1. ANCHO (620px)   fichas más grandes en el carrusel.
    2. ALTURA (820px)  ¿hay lugar para que el hero respire? La base es la
                       compacta, la que tiene que sobrevivir en un teléfono.
    3. HORIZONTAL      pantalla baja pero ancha: la altura es el recurso escaso.
@@ -811,10 +690,6 @@ img {
    ========================================================================== */
 
 @media (min-width: 620px) {
-  .tiers {
-    grid-template-columns: 1fr 1fr;
-  }
-
   .marquee {
     --item: 140px;
     --gap-item: 16px;
@@ -834,7 +709,7 @@ img {
   }
 
   .suitcase {
-    width: min(48vw, 24svh, 320px);
+    width: min(58vw, 30svh, 400px);
   }
 
   .counter__number {
@@ -920,10 +795,6 @@ img {
    a dos columnas y la valija se achica todo lo que se pueda. Con 360px de alto
    el hero completo no entra igual, pero al menos no se va a tres pantallas. */
 @media (max-height: 560px) and (min-width: 560px) {
-  .tiers {
-    grid-template-columns: 1fr 1fr;
-  }
-
   .suitcase {
     width: min(30vh, 140px);
   }
@@ -1141,4 +1012,50 @@ img {
   text-align: center;
   max-width: 36ch;
   line-height: 1.3;
+}
+
+/* ------------------------------------------------------------- el botón --- */
+
+/* Un solo botón, el elemento más prominente después de la valija y el número.
+   Con los cuatro tiers afuera queda aire: se usa para que respire. */
+.support {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  margin-top: clamp(0.5rem, 2.5svh, 1.25rem);
+}
+
+.support__button {
+  display: block;
+  width: min(100%, 20rem);
+  padding: clamp(0.7rem, 2svh, 1rem) 1.5rem;
+  border-radius: 999px;
+  border: 1px solid var(--bubblegum);
+  background: linear-gradient(rgba(255, 79, 163, 0.2), rgba(255, 79, 163, 0.07));
+  box-shadow: 0 0 32px rgba(255, 79, 163, 0.28);
+  font-family: var(--display);
+  font-size: var(--fs-heading);
+  line-height: 1.1;
+  text-align: center;
+  text-decoration: none;
+  color: var(--paper);
+  transition:
+    background 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease;
+}
+
+.support__button:hover {
+  background: linear-gradient(rgba(255, 79, 163, 0.3), rgba(255, 79, 163, 0.12));
+  box-shadow: 0 0 44px rgba(255, 79, 163, 0.4);
+  transform: translateY(-1px);
+}
+
+.support__note {
+  font-size: var(--fs-micro);
+  color: var(--paper-faint);
+  text-align: center;
+  max-width: 34ch;
 }

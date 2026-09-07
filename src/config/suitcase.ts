@@ -10,21 +10,21 @@
 export const SUITCASE_CAPACITY_G = 23_000
 
 /**
- * Gramos por unidad de tier.
+ * Gramos por dólar.
  *
- * De dónde sale: la meta son 5.200 personas con la mezcla esperada 85/10/4/1,
- * que da 1,51 unidades por persona y 7.852 unidades en total. 23.000 gramos
- * sobre 7.852 unidades dan 2,93 g, redondeado a 3. Si esas 5.200 personas
- * aportan, la valija queda llena.
+ * Con montos libres no hay escalones que valgan: la conversión es proporcional.
+ * Cinco dólares son tres gramos, que es lo que dice el copy, y el copy se deriva
+ * de acá en vez de estar escrito a mano. Si cambia la constante, la frase se
+ * corrige sola.
+ *
+ * No es un dato reservado: los precios ahora se muestran, así que vive del lado
+ * del cliente y el webhook importa esta misma constante.
  */
-export const GRAMS_PER_UNIT = 3
+export const GRAMS_PER_DOLLAR = 0.6
 
-/**
- * Gramos que aporta un tier. Se derivan de sus kilos-unidad (1, 3, 6, 12) y no
- * se escriben por separado: una tabla duplicada se desincroniza el día que
- * cambie GRAMS_PER_UNIT.
- */
-export const gramsForUnits = (units: number): number => units * GRAMS_PER_UNIT
+/** Mínimo un gramo: quien puso algo, puso algo. */
+export const gramsForDollars = (dollars: number): number =>
+  dollars <= 0 ? 0 : Math.max(1, Math.round(dollars * GRAMS_PER_DOLLAR))
 
 /** Cada cuánto el front vuelve a pedir /api/kilos. */
 export const KILOS_POLL_MS = 30_000

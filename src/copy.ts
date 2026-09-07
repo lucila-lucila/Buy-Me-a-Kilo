@@ -1,3 +1,5 @@
+import { gramsForDollars } from './config/suitcase'
+
 const WORDS = [
   'zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine',
   'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen',
@@ -22,13 +24,11 @@ export const copy = {
     title: 'Buy me a kilo',
     /**
      * La línea operativa va arriba del fold, sola: es la que explica qué se
-     * compra. El resto del relato entra apenas abajo, después de los tiers.
-     * Es lo que pedía el primer brief: valija, una línea de copy y los cuatro
-     * tiers en la primera pantalla.
+     * compra. El resto del relato entra apenas abajo, después del botón.
      */
     lead: "Fill a kilo, get a sticker. You don't get to pick which one.",
     /**
-     * El relato, apenas abajo de los tiers. No repite nada de lo que ya dijeron
+     * El relato, apenas abajo del botón. No repite nada de lo que ya dijeron
      * la valija, el número o la línea rotativa: el destino y el plazo viven
      * arriba.
      */
@@ -54,8 +54,8 @@ export const copy = {
     /** El número grande: los kilos que hay adentro, con un decimal. */
     ofCapacity: (capacity: number) => `of ${capacity} kilos`,
     /** El renglón que se mueve con cada aporte individual. */
-    detail: (grams: number, percent: number) =>
-      `${grams.toLocaleString('en-US')} grams packed · ${percent.toFixed(1)}% full`,
+    detail: (grams: number, people: number, percent: number) =>
+      `${grams.toLocaleString('en-US')} grams packed · ${people.toLocaleString('en-US')} people · ${percent.toFixed(1)}% full`,
     overweight: 'The suitcase is now illegal. Continue anyway.',
   },
 
@@ -77,8 +77,6 @@ export const copy = {
    * segundos de cada veinticuatro no crea ninguna urgencia.
    */
   rotating: {
-    people: (n: number) =>
-      n === 1 ? '1 person has bought a kilo' : `${n.toLocaleString('en-US')} people have bought a kilo`,
     origin: 'most of them arrived before this page existed',
     next: 'next stop japan. after that, undecided.',
   },
@@ -109,11 +107,13 @@ export const copy = {
     line: 'the plane left. thank you. the next suitcase opens soon.',
   },
 
-  tiers: {
-    heading: 'Fill a kilo',
-    priceNote: 'The price shows up in checkout, before you pay.',
-    /** Cuando los items de Ko-fi todavía no existen. */
-    unconfigured: 'The shop is not open yet.',
+  support: {
+    cta: 'add to the suitcase',
+    /**
+     * El precio ahora se dice. Los gramos salen de GRAMS_PER_DOLLAR, no están
+     * escritos a mano: si cambia la constante, la frase se corrige sola.
+     */
+    note: `five dollars is ${asWord(gramsForDollars(5))} grams. put in whatever you want.`,
   },
 
   grid: {

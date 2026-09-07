@@ -4,7 +4,7 @@ import { Suitcase } from './components/Suitcase'
 import { KiloCounter } from './components/KiloCounter'
 import { SuitcaseBar } from './components/SuitcaseBar'
 import { RotatingLine } from './components/RotatingLine'
-import { TierGrid } from './components/TierGrid'
+import { SupportButton } from './components/SupportButton'
 import { StickerMarquee } from './components/StickerMarquee'
 import { Footer } from './components/Footer'
 import { Grain } from './components/Grain'
@@ -25,11 +25,7 @@ export default function App() {
   const urgent = !departed && days > 0 && days < URGENT_DAYS
   const glow = 0.35 + Math.min(1, percent / 100) * 0.65 + (overweight ? 0.3 : 0)
 
-  const rotating = [
-    ...(data !== null ? [copy.rotating.people(data.peopleTotal)] : []),
-    copy.rotating.origin,
-    copy.rotating.next,
-  ]
+  const rotating = [copy.rotating.origin, copy.rotating.next]
 
   return (
     <>
@@ -52,7 +48,9 @@ export default function App() {
             )}
             <SuitcaseBar percent={percent} overweight={overweight} />
             {data !== null && (
-              <p className="counter__detail">{copy.suitcase.detail(data.gramsTotal, data.percentFull)}</p>
+              <p className="counter__detail">
+                {copy.suitcase.detail(data.gramsTotal, data.peopleTotal, data.percentFull)}
+              </p>
             )}
           </div>
 
@@ -66,7 +64,7 @@ export default function App() {
           <p className="hero__lead">{copy.hero.lead}</p>
           <p className="hero__joke">{copy.hero.joke}</p>
 
-          <TierGrid />
+          <SupportButton />
         </section>
 
         <p className="hero__prose">

@@ -17,5 +17,5 @@
     "composite": true,
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.api.tsbuildinfo"
   },
-  "include": ["api", "src/config/tiers.ts", "src/config/suitcase.ts"]
+  "include": ["api", "src/config/suitcase.ts"]
 }

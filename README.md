@@ -92,20 +92,32 @@ Si agregás una variable de servidor nueva, sumala a `ECONOMY_ENV` en
 le puso prefijo `VITE_`. Las `VITE_VERCEL_*` que inyecta Vercel están excluidas
 a propósito, son públicas por diseño y no tienen nada nuestro adentro.
 
+## Cómo se aporta
+
+Un solo botón a `ko-fi.com/buymeakilo`, donde la persona elige el monto. Los
+cuatro items de tienda se eliminaron: un botón que ya funciona vale más que una
+escalera perfecta que no existe, y crearlos venía trabando el lanzamiento. La
+escalera puede volver.
+
+Los precios ahora se muestran, así que `check-leak` dejó de tratarlos como fuga.
+Lo que sigue sin poder llegar al bundle son las comisiones, los pisos semanales,
+`TARGET_PEOPLE` y los tokens.
+
+**Nada físico, nunca.** No se manda nada por correo, así que el pie es
+literalmente cierto para todos y no hay envío que descontar del neto. El webhook
+sigue descartando el campo `shipping` si alguna vez llegara.
+
 ## La escala: gramos
 
 Una sola valija de 23 kilos para este viaje. La unidad interna son **gramos**,
 porque un aporte no llena un kilo: lo llenan entre muchos. Un kilo son unas 220
 personas, y eso es el chiste, dicho en voz alta en el hero.
 
-Cada tier aporta `GRAMS_PER_UNIT` por sus kilos-unidad: 3, 9, 18 y 36 g. Los
-gramos por tier se derivan, no se escriben por separado: una tabla duplicada se
-desincroniza el día que cambie la constante.
-
-De dónde sale el 3: la meta interna son 5.200 personas con la mezcla 85/10/4/1,
-que da 1,51 unidades por persona y 7.852 unidades. 23.000 g sobre 7.852 dan
-2,93 g, redondeado a 3. Verificado: con esas 5.200 personas la valija llega al
-102% y queda llena.
+Con montos libres la conversión es proporcional: `GRAMS_PER_DOLLAR = 0.6`, con
+un mínimo de un gramo. Cinco dólares son tres gramos, y **el copy se deriva de la
+constante** en vez de estar escrito a mano: si cambia, la frase se corrige sola.
+Vive en `src/config/suitcase.ts` porque los precios ya no son un dato reservado,
+y el webhook importa esa misma función.
 
 Todo lo que se ve sale de un único número, en `api/_lib/journey.ts`:
 
