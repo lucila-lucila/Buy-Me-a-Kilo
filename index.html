@@ -10,14 +10,22 @@
       content="There is one suitcase. Fill a kilo, get a sticker. You don't get to pick which one."
     />
 
+    <!-- Absolutas y no relativas: Twitter, WhatsApp y Facebook descartan una
+         og:image con path relativo, y la tarjeta sale sin imagen. Es texto
+         estático en el head, así que el dominio va escrito. -->
     <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://buymeakilo.com/" />
     <meta property="og:title" content="Buy Me a Kilo" />
     <meta
       property="og:description"
       content="I have 23 kilos. Most of them are empty. Fill a kilo, get a sticker."
     />
-    <meta property="og:image" content="/stickers/png/sticker_11.png" />
+    <meta property="og:image" content="https://buymeakilo.com/stickers/png/sticker_11.png" />
+    <meta property="og:image:width" content="1024" />
+    <meta property="og:image:height" content="1024" />
+    <meta property="og:image:alt" content="One of the twelve stickers." />
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="https://buymeakilo.com/stickers/png/sticker_11.png" />
 
     <link rel="icon" href="/stickers/webp/sticker_11.webp" type="image/webp" />
 
