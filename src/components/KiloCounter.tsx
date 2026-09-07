@@ -1,5 +1,3 @@
-import { copy } from '../copy'
-
 /**
  * El número de kilos es el elemento tipográfico protagonista. Cuando sube, los
  * dígitos rotan verticalmente uno por uno.
@@ -21,17 +19,15 @@ function Digit({ char }: { char: string }) {
 export function KiloCounter({ total, stale }: { total: number; stale: boolean }) {
   const text = total.toLocaleString('en-US')
   return (
-    <p className="counter__number" title={stale ? copy.counter.stale : undefined}>
-      <span className="sr-only">
-        {text} {copy.counter.unit}
-      </span>
+    <p className="counter__number" title={stale ? 'last known count' : undefined}>
+      <span className="sr-only">{text} kilos</span>
       <span aria-hidden="true" style={{ display: 'flex' }}>
         {text.split('').map((char, i) => (
           <Digit key={`${i}-${char}`} char={char} />
         ))}
       </span>
       <span className="counter__unit" aria-hidden="true">
-        {copy.counter.unit}
+        kilos
       </span>
     </p>
   )

@@ -116,7 +116,7 @@ export const DERIVED_NET_TICKET_CENTS = Math.round(
 export const EXPECTED_NET_TICKET_CENTS = DERIVED_NET_TICKET_CENTS
 
 /** Env vars que quedaron sin uso. El build las señala si siguen cargadas. */
-export const DEPRECATED_ENV = ['EXPECTED_NET_TICKET', 'KOFI_USERNAME']
+export const DEPRECATED_ENV = ['EXPECTED_NET_TICKET', 'KOFI_USERNAME', 'WEEKS_REMAINING']
 
 /** Aportes por semana. No son metas de plata: son pisos para saber dónde cayó la semana. */
 export const TARGETS = {
@@ -125,4 +125,8 @@ export const TARGETS = {
   jackpot: env('TARGET_JACKPOT_WEEKLY', 1500),
 }
 
-export const WEEKS_REMAINING = env('WEEKS_REMAINING', 12)
+/**
+ * WEEKS_REMAINING ya no existe: las semanas que faltan salen de DEPARTURE_DATE,
+ * en api/_lib/journey.ts, así que la proyección mira el vuelo real y no un
+ * número suelto que hay que acordarse de bajar cada lunes.
+ */

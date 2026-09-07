@@ -85,6 +85,39 @@ Si agregás una variable de servidor nueva, sumala a `ECONOMY_ENV` en
 le puso prefijo `VITE_`. Las `VITE_VERCEL_*` que inyecta Vercel están excluidas
 a propósito, son públicas por diseño y no tienen nada nuestro adentro.
 
+## Valijas numeradas
+
+La página muestra siempre una valija en curso. Cuando se llena a los 23 kilos se
+cierra y arranca la siguiente, así que nunca se ve ni vacía ni desbordada, y el
+exceso es el chiste en vez del problema.
+
+Todo se deriva de dos enteros de KV más el arrastre, en `api/_lib/journey.ts`.
+Nada se guarda por separado, así que no se puede desincronizar:
+
+```
+totalKilos     = SEED_KILOS  + total_kilos
+totalPeople    = SEED_PEOPLE + count_contrib_total
+suitcaseNumber = floor(totalKilos / 23) + 1
+kilosInCurrent = totalKilos % 23
+```
+
+Las personas son los aportes, que ya se contaban en `count_contrib_total`. No se
+creó una clave nueva para lo mismo: dos contadores del mismo hecho se
+desincronizan el día que una escritura falle y no hay forma de saber cuál miente.
+
+**El contador es monótono.** Solo lo mueve el webhook de un aporte, y no existe
+ninguna operación que lo baje. La valija es el registro histórico de lo que se
+fue llenando, no el saldo disponible: retirar la plata de Ko-fi no lo toca, y un
+reembolso se anota en el dashboard privado, nunca restando kilos. El número de
+valija nunca retrocede.
+
+Por eso `SEED_KILOS` y `SEED_PEOPLE` tienen el valor real como default en el
+código y no cero: si las variables se borraran, con cero la valija saltaría de
+la #13 a la #1.
+
+El estado **departed** (`daysRemaining` en 0) está contemplado en el shape y en
+el copy, pero todavía sin implementar en detalle.
+
 ## Conectar la base
 
 Vercel → Storage → la base de Upstash → Connect, con el prefijo VACÍO, para que

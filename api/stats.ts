@@ -8,6 +8,7 @@
 import { pipeline, toInt, describeKvEnv } from './_lib/redis.js'
 import { K } from './_lib/keys.js'
 import { isoWeekKey, previousWeekKeys } from './_lib/week.js'
+import { journeyState, weeksRemaining, SEED_KILOS, SEED_PEOPLE, departureDate } from './_lib/journey.js'
 import { TIERS, type TierId } from '../src/config/tiers.js'
 import {
   KOFI_PCT,
@@ -18,7 +19,6 @@ import {
   EXPECTED_MIX,
   EXPECTED_NET_TICKET_CENTS,
   TARGETS,
-  WEEKS_REMAINING,
   netCentsForTier,
 } from './_lib/economy.js'
 
@@ -139,6 +139,16 @@ export default async function handler(req: Request): Promise<Response> {
   return Response.json(
     {
       week,
+      // Mismo estado que ve la página, para poder comparar de un vistazo.
+      journey: journeyState({
+        kilos: totalKilos,
+        people: contribTotal,
+        weekKilos,
+        weekPeople: contribWeek,
+      }),
+      seed: { kilos: SEED_KILOS, people: SEED_PEOPLE, note: 'aportes previos a la página, sumados al leer' },
+      departure: departureDate().toISOString(),
+
       kilos: { total: totalKilos, week: weekKilos },
 
       gross: { totalUsd: usd(grossTotal), weekUsd: usd(grossWeek) },
@@ -187,11 +197,17 @@ export default async function handler(req: Request): Promise<Response> {
       },
 
       projection: {
-        weeksRemaining: WEEKS_REMAINING,
+        // Sale de DEPARTURE_DATE: la proyección mira el vuelo real.
+        weeksRemaining: weeksRemaining(
+          Math.max(0, Math.ceil((departureDate().getTime() - Date.now()) / 86_400_000)),
+        ),
         basedOnWeeks: closed.length,
         avgWeeklyNetUsd: usd(avgWeeklyNet),
         avgWeeklyContributions: Math.round(avgWeeklyContribs * 10) / 10,
-        projectedNetUsd: usd(avgWeeklyNet * WEEKS_REMAINING),
+        projectedNetUsd: usd(
+          avgWeeklyNet *
+            weeksRemaining(Math.max(0, Math.ceil((departureDate().getTime() - Date.now()) / 86_400_000))),
+        ),
       },
 
       distribution: {

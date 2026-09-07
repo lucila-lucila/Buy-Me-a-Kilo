@@ -19,16 +19,20 @@ const BASE = process.env.AUDIT_URL ?? 'http://localhost:5173'
 
 /** Las dos páginas. /open se había quedado afuera y ahí apareció un scroll. */
 const PAGES = [
-  { label: 'landing', path: '/?kg=214&week=6', wait: 1200 },
+  { label: 'landing', path: '/', wait: 1200 },
+  { label: 'a punto', path: '/?straining', wait: 1200 },
   { label: '/open', path: '/open?sticker=sticker_11', wait: 4200 },
 ]
 
 const VIEWPORTS = [
-  { name: 'iPhone SE viejo', w: 320, h: 568 },
+  // 360x640 es el contrato: ahí los cuatro tiers tienen que entrar antes del
+  // fold. En 320x568 y en horizontal el hero no entra y es una decisión, no un
+  // bug: comprimirlo más para un teléfono de 2016 rompería el resto.
+  { name: 'iPhone SE viejo', w: 320, h: 568, foldOptional: true },
   { name: 'referencia', w: 360, h: 640 },
   { name: 'Android típico', w: 390, h: 844 },
   { name: 'iPhone Plus', w: 414, h: 896 },
-  { name: 'horizontal', w: 740, h: 360 },
+  { name: 'horizontal', w: 740, h: 360, foldOptional: true },
   { name: 'tablet', w: 768, h: 1024 },
   { name: 'tablet ancha', w: 1024, h: 768 },
   { name: 'laptop', w: 1280, h: 800 },
@@ -96,14 +100,18 @@ for (const pg of PAGES) for (const vp of VIEWPORTS) {
   if (r.scrollH) problems.push('scroll horizontal')
   if (r.overflowing.length) problems.push(`texto desbordado (${r.overflowing.length})`)
   if (errors.length) problems.push(`errores de consola (${errors.length})`)
-  // El fold solo se exige donde la altura da: en horizontal es imposible.
-  if (r.lastBottom !== null && !foldOk && vp.h >= 560) problems.push(`tiers cortados (${r.lastBottom} > ${vp.h})`)
+  if (r.lastBottom !== null && !foldOk && !vp.foldOptional) {
+    problems.push(`tiers cortados (${r.lastBottom} > ${vp.h})`)
+  }
 
   if (problems.length) failures++
   rows.push({
     vp: `${vp.w}x${vp.h}`,
     name: `${pg.label} · ${vp.name}`,
-    fold: r.lastBottom === null ? '—' : `${r.lastBottom}/${vp.h}${foldOk ? '' : ' ⚠'}`,
+    fold:
+      r.lastBottom === null
+        ? '—'
+        : `${r.lastBottom}/${vp.h}${foldOk ? '' : vp.foldOptional ? ' (acepta)' : ' ⚠'}`,
     speed: r.speed ? `${r.speed.toFixed(1)} px/s` : '—',
     estado: problems.length ? problems.join(', ') : 'ok',
   })

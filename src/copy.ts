@@ -1,3 +1,13 @@
+const WORDS = [
+  'zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine',
+  'ten', 'eleven', 'twelve', 'thirteen',
+]
+
+/** Números en palabras hasta trece; de ahí en más, en dígitos. */
+function asWord(n: number): string {
+  return WORDS[n] ?? String(n)
+}
+
 /**
  * Todo el texto de la página. Seco, sin signos de exclamación, sin emojis, sin
  * agradecer. La narradora no se presenta y no explica por qué viaja.
@@ -5,19 +15,60 @@
 export const copy = {
   hero: {
     title: 'Buy me a kilo',
-    lines: [
+    /**
+     * La línea operativa va arriba del fold, sola: es la que explica qué se
+     * compra. El resto del relato entra apenas abajo, después de los tiers.
+     * Es lo que pedía el primer brief: valija, una línea de copy y los cuatro
+     * tiers en la primera pantalla.
+     */
+    lead: "Fill a kilo, get a sticker. You don't get to pick which one.",
+    /** `{when}` lo completa el servidor: nunca dice cinco semanas cuando faltan tres. */
+    prose: [
       'I have 23 kilos. Most of them are empty.',
-      "There is one suitcase. It's mine. That's the entire operation.",
-      "Fill a kilo, get a sticker. You don't get to pick which one.",
+      "There is one suitcase. It's mine. It leaves for Japan in {when}.",
+      'Then there will be another suitcase, and another country.',
+      'That part is not your problem yet.',
     ],
   },
 
-  counter: {
-    unit: 'kilos',
-    weekLabel: 'this week',
-    goalSuffix: (goal: number) => `of ${goal} kg`,
-    overweight: 'The suitcase is now illegal. Continue anyway.',
-    stale: 'last known count',
+  suitcase: {
+    label: (n: number) => `suitcase #${n}`,
+    note: (n: number) => `the first ${asWord(n - 1)} are already packed.`,
+    /** La primera valija todavía no tiene historia detrás. */
+    noteFirst: 'nothing is packed yet.',
+    /** Recién estrenada: la anterior acaba de cerrarse. */
+    justClosed: (n: number) => `#${n - 1} just closed. this one is empty.`,
+    progress: (kilos: number, capacity: number) => `${kilos} of ${capacity} kg`,
+    straining: 'this one is almost shut.',
+  },
+
+  people: {
+    count: (n: number) => `${n.toLocaleString('en-US')} people so far`,
+    /**
+     * Declara el origen del arrastre en voz alta. Un número explicado es más
+     * fuerte que uno que aparece solo, y la página se sostiene sobre decir la
+     * verdad sobre sí misma. No sacar.
+     */
+    note: 'most of them before this page existed. they came from somewhere else.',
+  },
+
+  countdown: {
+    /** Semanas mientras falten 14 días o más, después días. */
+    line: (days: number) =>
+      days <= 0
+        ? 'the plane has left.'
+        : days === 1
+          ? 'one day until the plane leaves'
+          : days < 14
+            ? `${days} days until the plane leaves`
+            : `${asWord(Math.round(days / 7))} weeks until the plane leaves`,
+    /** El mismo dato dentro de la línea del hero. */
+    inline: (days: number) =>
+      days <= 0 ? 'a while ago' : days === 1 ? 'a day' : days < 14 ? `${asWord(days)} days` : `${asWord(Math.round(days / 7))} weeks`,
+  },
+
+  departed: {
+    line: 'the plane left. thank you. the next suitcase opens soon.',
   },
 
   tiers: {
@@ -48,6 +99,12 @@ export const copy = {
     filling: 'The suitcase takes it.',
     shaking: 'Something is in the bag.',
     duplicate: 'duplicate. the suitcase sighs.',
+    /**
+     * Sin atribuir. /open no sabe si el kilo de quien está mirando cerró la
+     * valija: el webhook y la visita son independientes, y la URL es abierta a
+     * propósito. Atribuirlo sería mentirle a casi todos los que lo lean.
+     */
+    suitcaseClosed: (n: number) => `suitcase #${n - 1} just closed. #${n} is now open.`,
     rarity: {
       common: 'common. it counts the same.',
       rare: 'rare. nothing happens differently.',
@@ -69,9 +126,5 @@ export const copy = {
     cursed: 'i got the sad one.',
   } as const,
 
-  /**
-   * Solo el respaldo para localhost. En producción el pie de la tarjeta usa el
-   * dominio real desde el que se abrió la página: ver src/lib/domain.ts.
-   */
   domain: 'buymeakilo.com',
 } as const

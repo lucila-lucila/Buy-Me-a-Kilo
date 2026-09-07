@@ -30,9 +30,18 @@ const EMPTY_MATTERS = [
   'UPSTASH_REDIS_REST_TOKEN',
   'STATS_SECRET',
   'KOFI_VERIFICATION_TOKEN',
+  'SEED_KILOS',
+  'SEED_PEOPLE',
+  'DEPARTURE_DATE',
 ]
 
 const warnings = []
+
+// La fecha del vuelo: si no parsea, la cuenta regresiva miente en silencio.
+const departure = process.env.DEPARTURE_DATE?.trim()
+if (departure && Number.isNaN(new Date(departure).getTime())) {
+  warnings.push(`DEPARTURE_DATE no es una fecha válida: "${departure}". Se usa la de respaldo.`)
+}
 const empty = EMPTY_MATTERS.filter((k) => process.env[k] === '')
 if (empty.length > 0) {
   warnings.push(

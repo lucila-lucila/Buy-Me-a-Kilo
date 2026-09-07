@@ -8,7 +8,6 @@
  */
 import { copy } from '../copy'
 import { pngSrc, type Rarity } from '../config/stickers'
-import { COUNTER_THRESHOLD_KG } from '../config/goals'
 import { siteDomain } from './domain'
 import { formatSerial } from './serial'
 
@@ -49,7 +48,7 @@ async function ensureFonts(): Promise<void> {
 export interface ShareCardInput {
   stickerId: string
   rarity: Rarity
-  /** Total real de kilos, o null si todavía no llegó / no supera el umbral. */
+  /** Total real de kilos, o null si todavía no llegó. */
   totalKilos: number | null
   /** Número de serie, o null si el servidor no lo pudo dar. Nunca uno inventado. */
   serial: number | null
@@ -91,7 +90,7 @@ export async function composeShareCard(input: ShareCardInput): Promise<Blob> {
   ctx.fillText(copy.shareCard[input.rarity], W / 2, 1130)
   ctx.shadowBlur = 0
 
-  if (input.totalKilos !== null && input.totalKilos >= COUNTER_THRESHOLD_KG) {
+  if (input.totalKilos !== null) {
     ctx.fillStyle = 'rgba(255,246,236,0.68)'
     ctx.font = '500 42px "Familjen Grotesk", sans-serif'
     ctx.fillText(`${input.totalKilos.toLocaleString('en-US')} kilos in the suitcase`, W / 2, 1210)

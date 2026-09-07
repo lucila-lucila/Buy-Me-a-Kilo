@@ -7,7 +7,7 @@ import { downloadSticker } from '../../lib/shareCard'
 import { claimSerial, formatSerial } from '../../lib/serial'
 import { useKilos } from '../../lib/useKilos'
 import { useReducedMotion } from '../../lib/reducedMotion'
-import { COUNTER_THRESHOLD_KG, WEEKLY_GOAL_KG } from '../../config/goals'
+import { STRAINING_FROM_KG } from '../../config/suitcase'
 import { byId, type Sticker } from '../../config/stickers'
 import { Suitcase } from '../Suitcase'
 import { Reveal } from './Reveal'
@@ -74,9 +74,13 @@ export default function OpenScene() {
   }, [reduced])
 
   const { sticker, duplicate, owned } = result
-  const total = data?.total ?? null
-  const week = data?.week ?? 0
+  const total = data?.totalKilos ?? null
+  const inCurrent = data?.kilosInCurrent ?? 0
+  const capacity = data?.suitcaseCapacity ?? 23
   const revealed = phase === 'reveal'
+  // Una valija recién estrenada: la anterior se cerró hace poco. Sin atribuir a
+  // quien está mirando, que puede no haber pagado nada.
+  const justOpened = data !== null && inCurrent === 0 && data.totalKilos > 0
 
   const line = useMemo(() => {
     if (!revealed) return phase === 'fill' ? copy.open.filling : copy.open.shaking
@@ -96,9 +100,9 @@ export default function OpenScene() {
               transition={{ duration: 0.25 }}
             >
               <Suitcase
-                ratio={Math.min(1, (week + 1) / WEEKLY_GOAL_KG)}
+                ratio={Math.min(1, (inCurrent + 1) / capacity)}
                 breathing={false}
-                overweight={week >= WEEKLY_GOAL_KG}
+                overweight={inCurrent >= STRAINING_FROM_KG}
                 className="suitcase--stage"
               />
             </motion.div>
@@ -137,6 +141,10 @@ export default function OpenScene() {
 
       {revealed && (
         <>
+          {justOpened && (
+            <p className="open__closed">{copy.open.suitcaseClosed(data.suitcaseNumber)}</p>
+          )}
+
           <p className="open__sub">
             {copy.open.collection(owned)}
             {serial !== null && <> · <span className="open__serial">{formatSerial(serial)}</span></>}
@@ -145,7 +153,7 @@ export default function OpenScene() {
           <div className="actions">
             <ShareButton
               sticker={sticker}
-              totalKilos={total !== null && total >= COUNTER_THRESHOLD_KG ? total : null}
+              totalKilos={total}
               serial={serial}
             />
             <button className="btn" onClick={() => void downloadSticker(sticker.id)}>

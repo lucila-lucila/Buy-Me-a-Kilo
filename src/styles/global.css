@@ -120,7 +120,7 @@ img {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: clamp(0.35rem, 1.6vw, 0.9rem);
+  gap: clamp(0.12rem, 0.75svh, 0.6rem);
 }
 
 .hero__title {
@@ -132,19 +132,27 @@ img {
   text-shadow: 0 0 28px rgba(255, 79, 163, 0.45);
 }
 
-.hero__lines {
+/* La línea operativa, arriba del fold: la única que explica qué se compra. */
+.hero__lead {
   margin: 0;
   text-align: center;
   font-size: var(--fs-lead);
   line-height: 1.3;
-  color: var(--paper-dim);
-  text-wrap: balance;
-  max-width: 34ch;
-}
-
-.hero__lines b {
   color: var(--paper);
   font-weight: 500;
+  text-wrap: balance;
+  max-width: 32ch;
+}
+
+/* El relato, apenas abajo de los tiers. */
+.hero__prose {
+  margin: clamp(1.25rem, 5vw, 2rem) auto 0;
+  text-align: center;
+  font-size: var(--fs-lead);
+  line-height: 1.35;
+  color: var(--paper-dim);
+  text-wrap: balance;
+  max-width: 40ch;
 }
 
 .section {
@@ -167,17 +175,33 @@ img {
    una viñeta del tamaño de la caja de la ilustración. */
 .suitcase {
   position: relative;
-  width: min(52vw, 31svh, 300px);
+  /* Es el elemento dominante de la primera pantalla. El tope alto es para
+     desktop; en pantallas bajas manda el svh, porque ahí la regla que gobierna
+     es que los cuatro tiers entren antes del fold. */
+  /* Es el elemento dominante de la primera pantalla, pero el tope real lo pone
+     la altura: con la valija en curso, su número, las personas y la cuenta
+     regresiva, el hero tiene cuatro bloques más que antes, y la regla que
+     gobierna sigue siendo que los cuatro tiers entren antes del fold. */
+  width: min(52vw, 20svh, 320px);
   aspect-ratio: 1;
   flex: none;
 }
 
 .suitcase__fill,
-.suitcase__shell {
+.suitcase__shell,
+.spill {
   position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
+  /* La valija dibujada ocupa cerca del 70% de su cuadro de 1024, así que las
+     capas se pasan del borde: la ilustración se ve un 40% más grande sin que la
+     caja ocupe más alto, que es el recurso escaso del hero. Las tres se pasan
+     lo mismo, así que la máscara de la cavidad sigue alineada. */
+  inset: -18%;
+  width: 136%;
+  height: 136%;
+  /* El reset global tiene img { max-width: 100% }, que capaba la carcasa al
+     tamaño de la caja mientras el relleno sí crecía: las dos capas quedaban
+     desalineadas y el líquido se salía por el costado. */
+  max-width: none;
   z-index: 1;
 }
 
@@ -231,8 +255,6 @@ img {
 }
 
 .spill {
-  position: absolute;
-  inset: 0;
   z-index: 3;
   pointer-events: none;
   overflow: visible;
@@ -253,7 +275,7 @@ img {
   align-items: baseline;
   gap: 0.3rem;
   font-family: var(--display);
-  font-size: var(--fs-display);
+  font-size: clamp(1.7rem, 9vw, 2.6rem);
   line-height: 0.9;
   letter-spacing: -0.02em;
   /* Como filtro y no como text-shadow: los digitos van en columnas con overflow
@@ -346,9 +368,14 @@ img {
 .goal__meta {
   display: flex;
   justify-content: space-between;
-  font-size: var(--fs-small);
+  gap: 0.75rem;
+  font-size: var(--fs-micro);
   color: var(--paper-faint);
   letter-spacing: 0.01em;
+}
+
+.goal__meta > :last-child {
+  white-space: nowrap;
 }
 
 .goal__over {
@@ -381,7 +408,7 @@ img {
     'note kilos';
   align-items: end;
   gap: 0.15rem 0.6rem;
-  padding: 0.7rem 0.9rem;
+  padding: clamp(0.3rem, 0.9svh, 0.6rem) 0.8rem;
   border: 1px solid var(--hairline);
   border-radius: 16px;
   background: rgba(255, 246, 236, 0.03);
@@ -402,7 +429,7 @@ img {
   font-family: var(--display);
   font-weight: 400;
   line-height: 1.05;
-  font-size: var(--fs-heading);
+  font-size: var(--fs-body);
 }
 
 .tier__note {
@@ -474,7 +501,7 @@ img {
 
 .tiers__note {
   grid-column: 1 / -1;
-  margin: 0.15rem 0 0;
+  margin: 0;
   font-size: var(--fs-micro);
   color: var(--paper-faint);
   text-align: center;
@@ -774,8 +801,8 @@ img {
    Breakpoints. Solo tres, y cada uno responde a una pregunta distinta:
 
    1. ANCHO (620px)   ¿entran dos columnas de tiers al lado?
-   2. ALTURA (700px)  ¿hay que comprimir el hero para que los cuatro tiers
-                      entren antes del fold?
+   2. ALTURA (960px)  ¿hay lugar para que el hero respire? La base es la
+                      compacta, la que tiene que sobrevivir en un teléfono.
    3. HORIZONTAL      pantalla baja pero ancha: la altura es el recurso escaso.
 
    La tipografía no aparece acá: la escala de tokens.css es fluida y cubre todo
@@ -794,204 +821,33 @@ img {
   }
 }
 
-/* Los valores van atados a svh en vez de fijos: la compresión es continua de
-   568 a 700 de alto, así que no hace falta un segundo escalón para el SE. */
-@media (max-height: 700px) {
+/* Pantallas altas: hay lugar, así que el hero respira y la valija crece. La
+   base es la compacta, que es la que tiene que sobrevivir en un teléfono. */
+@media (min-height: 960px) {
+  :root {
+    --gap: 0.75rem;
+  }
+
   .hero {
-    gap: clamp(0.15rem, 0.9svh, 0.6rem);
+    gap: clamp(0.35rem, 1.6vw, 0.9rem);
   }
 
   .suitcase {
-    width: min(40vw, 21svh, 300px);
+    width: min(60vw, 31svh, 420px);
   }
 
-  .hero__lines {
-    line-height: 1.2;
+  .counter__number {
+    font-size: var(--fs-display);
   }
 
   .tier {
-    padding: clamp(0.3rem, 0.9svh, 0.6rem) 0.8rem;
+    padding: 0.7rem 0.9rem;
   }
 
-  :root {
-    --gap: clamp(0.35rem, 1.1svh, 0.7rem);
-  }
-
-  .tiers__note {
-    margin-top: 0;
+  .tier__label {
+    font-size: var(--fs-heading);
   }
 }
-
-@media (max-height: 560px) and (min-width: 560px) {
-  .tiers {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .suitcase {
-    width: min(26vh, 150px);
-  }
-}
-
-/* --------------------------------------------------- reduced motion ------ */
-
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.001ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 180ms !important;
-    scroll-behavior: auto !important;
-  }
-
-  .suitcase--breathing .suitcase__fill,
-  .suitcase--breathing .suitcase__shell,
-  .suitcase--breathing .spill,
-  .suitcase--overweight .suitcase__fill,
-  .suitcase--overweight .suitcase__shell,
-  .suitcase--overweight .spill,
-  .goal--over .goal__fill,
-  .bag--shaking {
-    animation: none;
-  }
-}
-
-/* ------------------------------------------------------- onda del relleno -- */
-
-/* El nivel sube con un easing suave; las dos ondas corren desfasadas para que
-   la superficie parezca líquido y no una barra. */
-.wave-level {
-  transition: transform 1200ms cubic-bezier(0.22, 0.85, 0.25, 1);
-}
-
-/* Aplana la onda cuando hay poco líquido, para que se lea como una lámina que
-   cruza todo el ancho y no como olas sueltas contra las esquinas redondeadas. */
-.wave-calm {
-  transition: transform 1200ms cubic-bezier(0.22, 0.85, 0.25, 1);
-}
-
-.wave {
-  animation: drift 9s linear infinite;
-}
-
-.wave--front {
-  animation-duration: 6.5s;
-  animation-direction: reverse;
-}
-
-@keyframes drift {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(340px);
-  }
-}
-
-.spill__blob {
-  opacity: 0;
-  filter: drop-shadow(0 0 14px rgba(255, 246, 236, 0.4));
-  animation-name: spill;
-  animation-timing-function: cubic-bezier(0.3, 0, 0.7, 1);
-  animation-iteration-count: infinite;
-}
-
-@keyframes spill {
-  0% {
-    opacity: 0;
-    transform: translate(0, 0) scale(0.45);
-  }
-  14% {
-    opacity: 1;
-    transform: translate(calc(var(--dx) * 0.22), calc(var(--dy) * -0.14)) scale(1.2) rotate(0deg);
-  }
-  100% {
-    opacity: 0;
-    transform: translate(var(--dx), var(--dy)) scale(0.7) rotate(var(--rot));
-  }
-}
-
-/* Las gotas cuelgan del canto de abajo y se estiran hasta soltarse. */
-.spill__drip {
-  transform-origin: 50% 0;
-  transform-box: fill-box;
-  opacity: 0.9;
-  filter: drop-shadow(0 0 14px rgba(123, 240, 200, 0.75));
-  animation-name: drip;
-  animation-timing-function: cubic-bezier(0.45, 0, 0.35, 1);
-  animation-iteration-count: infinite;
-}
-
-@keyframes drip {
-  0% {
-    transform: scaleY(0.05) scaleX(0.7);
-    opacity: 0.5;
-  }
-  55% {
-    transform: scaleY(1) scaleX(1);
-    opacity: 0.9;
-  }
-  80% {
-    transform: scaleY(0.85) scaleX(0.8);
-    opacity: 0.7;
-  }
-  100% {
-    transform: scaleY(0.05) scaleX(0.7);
-    opacity: 0;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .wave,
-  .spill__blob,
-  .spill__drip {
-    animation: none;
-  }
-
-  .spill__blob {
-    opacity: 0.85;
-  }
-
-  .spill__drip {
-    transform: scaleY(0.8);
-    transform-box: fill-box;
-    transform-origin: 50% 0;
-  }
-}
-
-/* La valija dentro de la coreografía de /open es más chica que en el hero. */
-.suitcase--stage {
-  width: 70%;
-}
-
-/* Duplicado: una animación mínima de resignación, nada más. */
-.reveal--duplicate {
-  animation: sigh 2.4s ease-in-out infinite;
-}
-
-@keyframes sigh {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(6px);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .reveal--duplicate {
-    animation: none;
-  }
-}
-
-/* En pantallas bajas la valija cede espacio antes que los tiers: el chiste
-   completo y los cuatro botones tienen que entrar en la primera pantalla. */
-/* En pantallas bajas la valija y el copy ceden espacio antes que los tiers: el
-   chiste completo y los cuatro botones tienen que entrar en la primera pantalla. */
-
-/* Mobile en horizontal: la altura es el recurso escaso, así que los tiers pasan
-   a dos columnas y la valija se achica. */
 
 /* Glow extra de las raras y de la maldita. Va como capa atrás y no como filtro
    sobre la imagen: el filtro quedaría recortado por la máscara del screen. */
@@ -1057,4 +913,74 @@ img {
   font-size: var(--fs-micro);
   color: var(--paper-faint);
   opacity: 0.85;
+}
+
+/* Mobile en horizontal: la altura es el recurso escaso, así que los tiers pasan
+   a dos columnas y la valija se achica todo lo que se pueda. Con 360px de alto
+   el hero completo no entra igual, pero al menos no se va a tres pantallas. */
+@media (max-height: 560px) and (min-width: 560px) {
+  .tiers {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .suitcase {
+    width: min(30vh, 140px);
+  }
+
+  .hero__prose {
+    max-width: 52ch;
+  }
+}
+
+/* --------------------------------------------- valija en curso y viaje ---- */
+
+.hero__suitcase {
+  font-family: var(--display);
+  font-size: var(--fs-body);
+  letter-spacing: 0.01em;
+  text-align: center;
+}
+
+.people {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+  text-align: center;
+  max-width: 34ch;
+}
+
+.people b {
+  font-weight: 500;
+  font-size: var(--fs-small);
+  color: var(--paper-dim);
+}
+
+.people span {
+  font-size: var(--fs-micro);
+  color: var(--paper-faint);
+  line-height: 1.2;
+}
+
+/* Es la quinta en la jerarquía: va discreta. Se enciende sola cuando la urgencia
+   es real, o sea cuando faltan menos de dos semanas. */
+.countdown {
+  font-family: var(--display);
+  font-size: var(--fs-micro);
+  color: var(--paper-dim);
+  text-align: center;
+}
+
+.countdown--soon {
+  color: var(--sherbet);
+  font-size: var(--fs-small);
+}
+
+/* Aviso de valija cerrada en /open. */
+.open__closed {
+  font-family: var(--display);
+  font-size: var(--fs-small);
+  color: var(--mint);
+  text-align: center;
+  margin: 0;
 }
