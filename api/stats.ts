@@ -9,6 +9,7 @@ import { pipeline, toInt, describeKvEnv } from './_lib/redis.js'
 import { K } from './_lib/keys.js'
 import { isoWeekKey, previousWeekKeys } from './_lib/week.js'
 import { journeyState, weeksRemaining, SEED_KILOS, SEED_PEOPLE, departureDate } from './_lib/journey.js'
+import { envText } from './_lib/env.js'
 import { TIERS, type TierId } from '../src/config/tiers.js'
 import {
   KOFI_PCT,
@@ -52,7 +53,7 @@ function netOf(grossCents: number, contribs: number, overweightCount: number): n
 }
 
 export default async function handler(req: Request): Promise<Response> {
-  const secret = process.env.STATS_SECRET
+  const secret = envText('STATS_SECRET')
   const key = new URL(req.url).searchParams.get('key') ?? ''
   if (!secret) {
     // Para afuera es un 404 igual al de una clave equivocada. En los logs, que

@@ -10,6 +10,7 @@ import { pipeline, cmd, RedisUnavailable, describeKvEnv } from './_lib/redis.js'
 import { K } from './_lib/keys.js'
 import { isoWeekKey } from './_lib/week.js'
 import { shopCodeToKilos, kilosForAmountCents } from './_lib/economy.js'
+import { envText } from './_lib/env.js'
 
 export const config = { runtime: 'edge' }
 
@@ -31,7 +32,7 @@ interface ShopItem {
 export default async function handler(req: Request): Promise<Response> {
   if (req.method !== 'POST') return new Response('method not allowed', { status: 405 })
 
-  const expected = process.env.KOFI_VERIFICATION_TOKEN
+  const expected = envText('KOFI_VERIFICATION_TOKEN')
   if (!expected) {
     console.error('kofi: KOFI_VERIFICATION_TOKEN no configurado')
     return new Response('not configured', { status: 500 })

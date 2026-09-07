@@ -4,11 +4,15 @@ import { useKilos } from './lib/useKilos'
 import { Suitcase } from './components/Suitcase'
 import { KiloCounter } from './components/KiloCounter'
 import { SuitcaseBar } from './components/SuitcaseBar'
+import { RotatingLine } from './components/RotatingLine'
 import { TierGrid } from './components/TierGrid'
 import { StickerMarquee } from './components/StickerMarquee'
 import { Footer } from './components/Footer'
 import { Grain } from './components/Grain'
 import { Glow } from './components/Glow'
+
+/** Menos de una semana: la cuenta regresiva deja de rotar y se queda fija. */
+const URGENT_DAYS = 7
 
 export default function App() {
   const { data, stale } = useKilos()
@@ -22,16 +26,19 @@ export default function App() {
   // Una valija a punto de cerrarse es el único momento en que está de verdad al
   // límite: ahí hereda la coreografía de derrame. Se repite cada 23 kilos.
   const straining = !departed && data !== null && inCurrent >= STRAINING_FROM_KG
-  // Recién estrenada: la anterior acaba de cerrarse.
-  const justOpened = data !== null && inCurrent === 0 && data.totalKilos > 0
-
   const glow = 0.35 + (inCurrent / capacity) * 0.65 + (straining ? 0.3 : 0)
 
-  const suitcaseNote = justOpened
-    ? copy.suitcase.justClosed(number)
-    : number === 1
-      ? copy.suitcase.noteFirst
-      : copy.suitcase.note(number)
+  const urgent = !departed && days > 0 && days < URGENT_DAYS
+  const rotating = departed
+    ? [copy.departed.line]
+    : urgent
+      ? [copy.rotating.days(days)]
+      : [
+          copy.rotating.days(days),
+          ...(number > 1 ? [copy.rotating.packed(number - 1)] : []),
+          copy.rotating.origin,
+          copy.rotating.next,
+        ]
 
   return (
     <>
@@ -46,25 +53,11 @@ export default function App() {
           <p className="hero__suitcase">{copy.suitcase.label(number)}</p>
 
           <div className="counter">
-            {data !== null && <KiloCounter total={data.totalKilos} stale={stale} />}
-            <SuitcaseBar
-              kilos={inCurrent}
-              capacity={capacity}
-              straining={straining}
-              note={suitcaseNote}
-            />
+            {data !== null && <KiloCounter total={data.totalPeople} unit="people" stale={stale} />}
+            <SuitcaseBar kilos={inCurrent} capacity={capacity} straining={straining} />
           </div>
 
-          {data !== null && (
-            <p className="people">
-              <b>{copy.people.count(data.totalPeople)}</b>
-              <span>{copy.people.note}</span>
-            </p>
-          )}
-
-          <p className={`countdown${!departed && days < 14 ? ' countdown--soon' : ''}`}>
-            {departed ? copy.departed.line : copy.countdown.line(days)}
-          </p>
+          <RotatingLine lines={rotating} frozen={urgent || departed} />
 
           <p className="hero__lead">{copy.hero.lead}</p>
 
@@ -74,7 +67,7 @@ export default function App() {
         <p className="hero__prose">
           {copy.hero.prose.map((line, i) => (
             <span key={line}>
-              {line.replace('{when}', copy.countdown.inline(days))}
+              {line}
               {i < copy.hero.prose.length - 1 && <br />}
             </span>
           ))}

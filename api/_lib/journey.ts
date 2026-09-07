@@ -5,6 +5,7 @@
  * separado, así que no se puede desincronizar.
  */
 import { SUITCASE_CAPACITY_KG } from '../../src/config/suitcase.js'
+import { envInt, envText } from './env.js'
 
 /**
  * Arrastre inicial: 289 aportes reales que llegaron por redes antes de que esta
@@ -20,21 +21,14 @@ import { SUITCASE_CAPACITY_KG } from '../../src/config/suitcase.js'
  * nada. Los valores viven además en las env vars para poder corregirlos sin
  * tocar código.
  */
-const int = (key: string, fallback: number): number => {
-  const raw = process.env[key]
-  if (raw === undefined || raw === '') return fallback
-  const n = Number.parseInt(raw, 10)
-  return Number.isFinite(n) && n >= 0 ? n : fallback
-}
-
-export const SEED_KILOS = int('SEED_KILOS', 289)
-export const SEED_PEOPLE = int('SEED_PEOPLE', 289)
+export const SEED_KILOS = envInt('SEED_KILOS', 289)
+export const SEED_PEOPLE = envInt('SEED_PEOPLE', 289)
 
 /** Medianoche de Buenos Aires, cinco semanas desde el 6 de septiembre de 2026. */
 const DEPARTURE_FALLBACK = '2026-10-11T00:00:00-03:00'
 
 export function departureDate(): Date {
-  const raw = process.env.DEPARTURE_DATE?.trim()
+  const raw = envText('DEPARTURE_DATE')?.trim()
   const d = new Date(raw && raw !== '' ? raw : DEPARTURE_FALLBACK)
   return Number.isNaN(d.getTime()) ? new Date(DEPARTURE_FALLBACK) : d
 }

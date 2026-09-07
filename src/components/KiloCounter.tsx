@@ -16,18 +16,29 @@ function Digit({ char }: { char: string }) {
   )
 }
 
-export function KiloCounter({ total, stale }: { total: number; stale: boolean }) {
+export function KiloCounter({
+  total,
+  unit,
+  stale,
+}: {
+  total: number
+  /** El número grande cuenta personas; los kilos viven en la barra. */
+  unit: string
+  stale: boolean
+}) {
   const text = total.toLocaleString('en-US')
   return (
     <p className="counter__number" title={stale ? 'last known count' : undefined}>
-      <span className="sr-only">{text} kilos</span>
+      <span className="sr-only">
+        {text} {unit}
+      </span>
       <span aria-hidden="true" style={{ display: 'flex' }}>
         {text.split('').map((char, i) => (
           <Digit key={`${i}-${char}`} char={char} />
         ))}
       </span>
       <span className="counter__unit" aria-hidden="true">
-        kilos
+        {unit}
       </span>
     </p>
   )

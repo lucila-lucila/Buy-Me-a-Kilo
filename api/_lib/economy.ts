@@ -11,13 +11,7 @@
  * quedar desincronizados, que sería un bug de plata silencioso.
  */
 import { TIERS, type TierId } from '../../src/config/tiers.js'
-
-const env = (k: string, fallback: number): number => {
-  const raw = process.env[k]
-  if (raw === undefined || raw === '') return fallback
-  const n = Number(raw)
-  return Number.isFinite(n) ? n : fallback
-}
+import { envNumber as env, envText, type EnvName } from './env.js'
 
 /** Precio real de cada tier, en centavos. Nunca sale de este archivo. */
 export const TIER_PRICE_CENTS: Record<TierId, number> = {
@@ -48,7 +42,7 @@ export const KILOS_BY_TIER: Record<TierId, number> = Object.fromEntries(
 export function shopCodeToKilos(): Map<string, number> {
   const map = new Map<string, number>()
   for (const t of TIERS) {
-    const override = process.env[`KOFI_ITEM_${t.id.toUpperCase()}`]
+    const override = envText(`KOFI_ITEM_${t.id.toUpperCase()}` as EnvName)
     const code = (override && override.trim()) || t.kofiItemCode
     if (code && !code.startsWith('PLACEHOLDER')) map.set(code.toLowerCase(), t.kilos)
   }

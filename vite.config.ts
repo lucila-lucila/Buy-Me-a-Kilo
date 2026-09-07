@@ -52,7 +52,13 @@ function mockApi(): Plugin {
           if (q.has('straining')) totalKilos = 13 * CAPACITY - 1 // 22 de 23
           if (q.has('justclosed')) totalKilos = 13 * CAPACITY // #14 con 0
 
-          const days = q.has('departed') ? 0 : num('days', 35)
+          // Los días se calculan igual que en el servidor, para que el mock no
+          // envejezca mal cuando pasen las semanas.
+          const realDays = Math.max(
+            0,
+            Math.ceil((new Date(DEV_DEPARTURE).getTime() - Date.now()) / 86_400_000),
+          )
+          const days = q.has('departed') ? 0 : num('days', realDays)
 
           res.setHeader('Content-Type', 'application/json')
           res.setHeader('Cache-Control', 'no-store')

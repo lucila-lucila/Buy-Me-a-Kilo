@@ -54,9 +54,9 @@ export function TierGrid() {
       {TIERS.map((tier) => (
         <TierButton key={tier.id} tier={tier} />
       ))}
-      <p className="tiers__note">
-        {unconfiguredTiers().length > 0 ? copy.tiers.unconfigured : copy.tiers.priceNote}
-      </p>
+      {/* La nota de precio se fue: el checkout lo muestra igual. Queda solo el
+          aviso de tienda cerrada, que sí dice algo que no se ve de otro modo. */}
+      {unconfiguredTiers().length > 0 && <p className="tiers__note">{copy.tiers.unconfigured}</p>}
     </div>
   )
 }

@@ -22,10 +22,13 @@ export const copy = {
      * tiers en la primera pantalla.
      */
     lead: "Fill a kilo, get a sticker. You don't get to pick which one.",
-    /** `{when}` lo completa el servidor: nunca dice cinco semanas cuando faltan tres. */
+    /**
+     * El relato, apenas abajo de los tiers. No repite nada de lo que ya dijeron
+     * la valija, el número o la línea rotativa: el destino y el plazo viven
+     * arriba.
+     */
     prose: [
-      'I have 23 kilos. Most of them are empty.',
-      "There is one suitcase. It's mine. It leaves for Japan in {when}.",
+      "There is one suitcase. It's mine.",
       'Then there will be another suitcase, and another country.',
       'That part is not your problem yet.',
     ],
@@ -39,7 +42,6 @@ export const copy = {
     /** Recién estrenada: la anterior acaba de cerrarse. */
     justClosed: (n: number) => `#${n - 1} just closed. this one is empty.`,
     progress: (kilos: number, capacity: number) => `${kilos} of ${capacity} kg`,
-    straining: 'this one is almost shut.',
   },
 
   people: {
@@ -50,6 +52,21 @@ export const copy = {
      * verdad sobre sí misma. No sacar.
      */
     note: 'most of them before this page existed. they came from somewhere else.',
+  },
+
+  /**
+   * Un solo renglón que va alternando. Todo lo que antes eran cuatro bloques
+   * sueltos de texto entra acá de a uno: el hero deja de ser un muro.
+   *
+   * La cuenta regresiva va primera, y cuando falten menos de siete días deja de
+   * rotar y queda fija: a esa altura es lo único que importa.
+   */
+  rotating: {
+    days: (n: number) => (n === 1 ? 'one day until the plane leaves' : `${n} days until the plane leaves`),
+    packed: (suitcases: number) =>
+      `the first ${asWord(suitcases)} ${suitcases === 1 ? 'suitcase is' : 'suitcases are'} already packed`,
+    origin: 'most of them arrived before this page existed',
+    next: 'next stop japan. after that, undecided.',
   },
 
   countdown: {

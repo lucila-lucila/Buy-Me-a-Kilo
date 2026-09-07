@@ -75,6 +75,13 @@ public/                     las quince ilustraciones, servidas estaticas
 
 ## Variables de entorno
 
+Todas se leen con acceso estático desde `api/_lib/env.ts`. En el runtime edge de
+Vercel `process.env.NOMBRE` se resuelve en el build y `process.env[variable]` no
+es confiable: una comisión leída por índice cae al default sin avisar y el
+dashboard miente en silencio. Si agregás una variable nueva, sumala a ese archivo
+o no va a llegar a la función.
+
+
 Copiá `.env.example` y cargalas en Vercel. Ninguna lleva prefijo `VITE_`.
 
 Las mínimas para que funcione: `KOFI_VERIFICATION_TOKEN`, `KV_REST_API_URL`,

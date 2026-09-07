@@ -73,12 +73,65 @@ export function Suitcase({ ratio, overweight = false, breathing = true, classNam
           <clipPath id={`cavity-${uid}`}>
             <rect x={CAVITY.x} y={CAVITY.y} width={CAVITY.w} height={CAVITY.h} rx={CAVITY.r} />
           </clipPath>
+
+          {/* Los cuatro colores de la paleta cruzando el líquido en diagonal.
+              En userSpaceOnUse el gradiente vive en el espacio de la cavidad, así
+              que se desplaza con el nivel en vez de estirarse con la forma. */}
+          <linearGradient
+            id={`liquid-${uid}`}
+            gradientUnits="userSpaceOnUse"
+            x1={CAVITY.x}
+            y1={CAVITY.y + CAVITY.h}
+            x2={CAVITY.x + CAVITY.w}
+            y2={CAVITY.y}
+          >
+            <stop offset="0" style={{ stopColor: 'var(--bubblegum)' }} />
+            <stop offset="0.36" style={{ stopColor: 'var(--electric)' }} />
+            <stop offset="0.7" style={{ stopColor: 'var(--mint)' }} />
+            <stop offset="1" style={{ stopColor: 'var(--sherbet)' }} />
+          </linearGradient>
+
+          {/* Sin bordes duros: la superficie se difumina. El recorte de la
+              cavidad va después, así que los costados siguen limpios. */}
+          <filter id={`soft-${uid}`} x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur stdDeviation="7" />
+          </filter>
+          <filter id={`softer-${uid}`} x="-25%" y="-25%" width="150%" height="150%">
+            <feGaussianBlur stdDeviation="16" />
+          </filter>
         </defs>
+
         <g clipPath={`url(#cavity-${uid})`}>
           <g className="wave-level" style={{ transform: `translateY(${level.toFixed(1)}px)` }}>
-            <g className="wave-calm" style={{ transform: `scaleY(${calm.toFixed(3)})`, transformOrigin: `0 ${CAVITY.y}px` }}>
-              <path className="wave wave--back" d={back} fill="var(--electric)" opacity="0.55" />
-              <path className="wave wave--front" d={front} fill="var(--mint)" opacity="0.8" />
+            <g
+              className="wave-calm"
+              style={{ transform: `scaleY(${calm.toFixed(3)})`, transformOrigin: `0 ${CAVITY.y}px` }}
+            >
+              <path
+                className="wave wave--back"
+                d={back}
+                fill={`url(#liquid-${uid})`}
+                opacity="0.5"
+                filter={`url(#softer-${uid})`}
+              />
+              <path
+                className="wave wave--front"
+                d={front}
+                fill={`url(#liquid-${uid})`}
+                opacity="0.85"
+                filter={`url(#soft-${uid})`}
+              />
+              {/* El brillo de la superficie: el mismo path, solo el contorno. El
+                  borde de abajo queda fuera de la cavidad y lo recorta el clip. */}
+              <path
+                className="wave wave--shine"
+                d={front}
+                fill="none"
+                stroke="var(--paper)"
+                strokeWidth="5"
+                strokeOpacity="0.55"
+                filter={`url(#soft-${uid})`}
+              />
             </g>
           </g>
         </g>

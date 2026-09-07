@@ -1,21 +1,19 @@
 import { copy } from '../copy'
 
 /**
- * El llenado de la valija en curso. Reemplaza a la barra semanal: la escala
- * ahora la da la valija, que se cierra a los 23 kilos y deja lugar a la
- * siguiente.
+ * El llenado de la valija en curso. A la izquierda no va nada: todo lo que
+ * estaba ahí se mudó a la línea rotativa, para que el hero deje de ser un muro
+ * de texto.
  */
 export function SuitcaseBar({
   kilos,
   capacity,
   straining,
-  note,
 }: {
   kilos: number
   capacity: number
+  /** A uno o dos kilos del cierre: la barra empuja como la valija. */
   straining: boolean
-  /** La nota de la valija en curso: comparte fila con el progreso. */
-  note: string
 }) {
   const pct = Math.min(100, (kilos / capacity) * 100)
 
@@ -32,7 +30,6 @@ export function SuitcaseBar({
         <div className="goal__fill" style={{ width: `${Math.max(pct, kilos > 0 ? 3 : 0)}%` }} />
       </div>
       <div className="goal__meta">
-        <span>{straining ? copy.suitcase.straining : note}</span>
         <span>{copy.suitcase.progress(kilos, capacity)}</span>
       </div>
     </div>
