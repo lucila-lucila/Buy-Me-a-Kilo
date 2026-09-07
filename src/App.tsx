@@ -13,12 +13,12 @@ import { Glow } from './components/Glow'
 /**
  * El orden del hero es el camino al clic, y nada se mete en el medio:
  *
- *   título · valija · número · barra · métricas · cuenta regresiva
- *   mensaje central · botón · las dos líneas que explican el precio
+ *   título · línea de misión · valija · número · barra · métricas
+ *   cuenta regresiva · mensaje central · botón · la línea de los gramos
  *
- * El cierre va después, fuera del hero. El chiste de las doscientas personas
- * estaba entre el mensaje central y el botón y cortaba ese camino: ahora está
- * abajo, donde se lee después de haber entendido qué se compra.
+ * Se fueron tres bloques de texto: el chiste de las doscientas personas, que
+ * explicaba con palabras lo que ya dicen el número, la barra y los gramos; y el
+ * cierre de dos renglones, que la línea de misión dice mejor y desde arriba.
  *
  * La cuenta regresiva es su propio componente porque tickea cada segundo. Acá
  * no hay ningún estado que se mueva solo: esta función se vuelve a renderizar
@@ -40,6 +40,9 @@ export default function App() {
       <main className="page">
         <section className="hero">
           <h1 className="hero__title">{copy.hero.title}</h1>
+
+          {/* La carta de presentación: para qué existen los stickers. */}
+          <p className="hero__mission">{copy.hero.mission}</p>
 
           {/* El nivel sale del mismo percentFull que la barra y los números. */}
           <Suitcase ratio={percent / 100} overweight={overweight} />
@@ -65,21 +68,9 @@ export default function App() {
 
           <p className="hero__lead">{copy.hero.lead}</p>
 
+          {/* El botón, con la línea de los gramos pegada abajo. */}
           <SupportButton />
-
-          {/* La segunda de las dos líneas que explican el precio. La primera
-              —cinco dólares son tres gramos— sale pegada al botón. */}
-          <p className="hero__joke">{copy.hero.joke}</p>
         </section>
-
-        <p className="hero__prose">
-          {copy.hero.prose.map((line, i, all) => (
-            <span key={line}>
-              {line}
-              {i < all.length - 1 && <br />}
-            </span>
-          ))}
-        </p>
 
         <StickerMarquee />
 

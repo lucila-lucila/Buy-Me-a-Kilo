@@ -36,8 +36,16 @@ export const copy = {
   hero: {
     title: 'Buy me a kilo',
     /**
-     * La línea operativa va arriba del fold, sola: es la que explica qué se
-     * compra. El resto del relato entra apenas abajo, después del botón.
+     * La carta de presentación, debajo del título y arriba de la valija.
+     *
+     * Es lo que explica para qué existen los stickers —dejar una marca donde
+     * pase— y lo que convierte al viaje en algo que sigue en vez de terminar.
+     * Reemplaza al cierre que estaba al final ("there is one suitcase, it's
+     * mine, después habrá otra"), que decía lo mismo peor y desde abajo.
+     */
+    mission: 'my mission is to travel the world and leave my mark wherever I go.',
+    /**
+     * La línea operativa va arriba del fold: es la que explica qué se compra.
      */
     /**
      * El espacio entre "You" y "don't" es duro (\u00a0) a propósito: sin él, en
@@ -46,27 +54,6 @@ export const copy = {
      * corte posible cae después del punto, que es donde tiene que caer.
      */
     lead: "Fill a kilo, get a sticker. You\u00a0don't get to pick which one.",
-    /**
-     * El cierre, al final de todo. Dos líneas y nada más.
-     *
-     * Ya no dice cuándo sale: eso lo dice la cuenta regresiva, con los segundos
-     * puestos, y una prosa que dijera "in six weeks" la estaría contradiciendo
-     * en la misma pantalla. Tampoco está más "that part is not your problem
-     * yet", que no agregaba nada.
-     */
-    prose: [
-      "There is one suitcase. It's mine.",
-      'Then there will be another one, and another country.',
-    ],
-    /**
-     * La explicación del modelo, dicha con orgullo. Es lo que hace que nadie
-     * sienta que lo estafaron cuando compra "un kilo" y ve subir tres gramos.
-     * No sacar.
-     *
-     * Va debajo del botón, con la nota del precio: entre el mensaje central y
-     * el botón cortaba el camino al clic.
-     */
-    joke: 'a kilo costs about two hundred people. that is the whole joke.',
   },
 
   suitcase: {
