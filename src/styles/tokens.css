@@ -28,7 +28,10 @@
   --display: 'Bagel Fat One', 'Trebuchet MS', system-ui, sans-serif;
   --body: 'Familjen Grotesk', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
 
-  --page: 720px;
+  /* La columna. En escritorio el hero se abre en dos y necesita este ancho;
+     abajo de 900px vuelve a ser una sola pila y los bloques se limitan solos
+     con --measure. */
+  --page: 1100px;
   /* El ancho de los bloques de texto. Estaban limitados en ch sobre el cuerpo
      chico, y eso los dejaba en 256 px: "Fill a kilo, get a sticker. You don't
      get to pick which one." se partía después de "You". A 600 px las frases de

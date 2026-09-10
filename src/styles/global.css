@@ -106,7 +106,7 @@ img {
      relativo a la columna de contenido en todos los anchos. */
   background:
     radial-gradient(
-      clamp(340px, 62vw, 760px) clamp(260px, 46vw, 560px) at 50% 24%,
+      clamp(340px, 62vw, 760px) clamp(260px, 46vw, 560px) at var(--glow-x, 50%) 24%,
       rgba(255, 79, 163, calc(0.34 * var(--glow, 0.35))) 0%,
       rgba(59, 123, 255, calc(0.24 * var(--glow, 0.35))) 40%,
       rgba(20, 9, 28, 0) 74%
@@ -233,6 +233,10 @@ img {
      desalineadas y el líquido se salía por el costado. */
   max-width: none;
   z-index: 1;
+  /* Las capas se pasan un 36% del cuadro, así que en dos columnas el borde
+     transparente llega a montarse sobre la columna de al lado. No dibuja nada
+     ahí, pero se comería los clics si no fuera por esto. */
+  pointer-events: none;
 }
 
 /* La carcasa va encima con screen: el interior es casi negro, así que el
@@ -1102,4 +1106,97 @@ img {
   color: var(--paper-faint);
   text-align: center;
   max-width: var(--measure);
+}
+
+/* Este bloque va último a propósito. Las reglas de adentro tienen la misma
+   especificidad que las que pisan —una media query no suma especificidad—, así
+   que puesto más arriba perdía contra .countdown y .support, que se definen
+   cerca del final: la cuenta regresiva y el botón se quedaban centrados en una
+   columna alineada a la izquierda. */
+/* ------------------------------------------------------------ dos columnas --
+
+   En escritorio la pila del hero se abre en dos: la valija a la izquierda,
+   ocupando su mitad, y todo el resto a la derecha alineado a la izquierda.
+
+   El DOM no cambia. La valija se ubica en la columna 1 abarcando todas las
+   filas y el resto cae solo en la columna 2, una fila por bloque, en el mismo
+   orden en que están escritos. Así el orden de lectura, el del teclado y el del
+   teléfono siguen siendo el mismo, y abajo de 900px alcanza con no aplicar
+   nada: vuelve a ser el flex column centrado de siempre.
+
+   900px y no 620: abajo de eso la valija en media columna queda más chica que
+   el texto que tiene al lado y deja de ser el objeto de la página. */
+@media (min-width: 900px) {
+  .hero {
+    display: grid;
+    grid-template-columns: minmax(0, 48%) minmax(0, 1fr);
+    /* Las seis filas de la columna derecha, declaradas: título, misión,
+       contador, cuenta regresiva, mensaje y botón. Van explícitas porque
+       `grid-row: 1 / -1` se cuenta contra la grilla explícita: sin estas filas,
+       -1 es la línea 1 y la valija ocupa un solo renglón en vez de la columna
+       entera, que era justo lo que la dejaba doscientos píxeles más arriba. */
+    grid-template-rows: repeat(6, auto);
+    column-gap: clamp(2rem, 4vw, 3.5rem);
+    row-gap: clamp(0.5rem, 1.4vw, 1.1rem);
+    align-items: center;
+    text-align: left;
+  }
+
+  /* Todas las filas, para que la valija quede centrada contra la columna
+     entera y no contra el primer renglón. */
+  .hero > .suitcase {
+    grid-column: 1;
+    grid-row: 1 / -1;
+    align-self: center;
+    justify-self: center;
+    /* Acá el tope no lo pone el ancho de la pantalla sino el de su columna: con
+       las capas pasándose un 36%, más grande que esto y el borde transparente
+       se sale por la izquierda y aparece scroll horizontal. */
+    --suitcase-size: min(34vw, 52svh, 480px);
+  }
+
+  .hero > :not(.suitcase) {
+    grid-column: 2;
+    justify-self: stretch;
+  }
+
+  /* Lo que estaba centrado dentro de la columna pasa a arrancar de la
+     izquierda. Ninguno cambia de tamaño ni de orden. */
+  .hero__mission,
+  .hero__lead {
+    text-align: left;
+  }
+
+  .counter,
+  .support {
+    align-items: flex-start;
+  }
+
+  .countdown,
+  .counter__number {
+    justify-content: flex-start;
+  }
+
+  .counter__detail,
+  .support__note {
+    text-align: left;
+  }
+
+  /* El resplandor se corre detrás de la valija: centrado en la página, que es
+     donde estaba, en dos columnas cae en el medio de la nada.
+
+     Va en :root y no en .page porque .glow es hermano de .page, no hijo: se
+     posiciona contra el viewport y no hereda nada de la columna. Y va en
+     píxeles calculados y no en porcentaje porque el porcentaje sería del
+     viewport entero, que crece mientras la columna se queda en 1100: a 1920 el
+     resplandor quedaba 187 px a la izquierda de la valija.
+
+     La cuenta es el centro de la columna izquierda en coordenadas de pantalla:
+     el margen que centra la página, más su padding, más un cuarto del ancho de
+     contenido, que es la mitad de la columna del 48%. */
+  :root {
+    --glow-x: calc(
+      max(0px, (100vw - var(--page)) / 2) + 1.5rem + 0.24 * (min(100vw, var(--page)) - 3rem)
+    );
+  }
 }

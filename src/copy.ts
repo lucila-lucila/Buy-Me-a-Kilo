@@ -58,9 +58,16 @@ export const copy = {
   suitcase: {
     /** El número grande: los kilos que hay adentro, con un decimal. */
     ofCapacity: (capacity: number) => `of ${capacity} kilos`,
-    /** El renglón que se mueve con cada aporte individual. */
-    detail: (grams: number, people: number, percent: number) =>
-      `${grams.toLocaleString('en-US')} grams packed · ${people.toLocaleString('en-US')} people · ${percent.toFixed(1)}% full`,
+    /**
+     * El renglón que se mueve con cada aporte individual.
+     *
+     * Sin el porcentaje: al lado de una barra que ya lo dibuja y de un número
+     * que ya dice los kilos, era el mismo dato por tercera vez. percentFull
+     * sigue viniendo de la API y sigue moviendo la barra y el nivel de la
+     * valija; lo único que se fue es imprimirlo.
+     */
+    detail: (grams: number, people: number) =>
+      `${grams.toLocaleString('en-US')} grams packed · ${people.toLocaleString('en-US')} people`,
     overweight: 'The suitcase is now illegal. Continue anyway.',
   },
 

@@ -16,6 +16,12 @@ import { Glow } from './components/Glow'
  *   título · línea de misión · valija · número · barra · métricas
  *   cuenta regresiva · mensaje central · botón · la línea de los gramos
  *
+ * En escritorio esa pila se parte en dos columnas —la valija a la izquierda,
+ * todo lo demás a la derecha— sin mover una sola etiqueta de lugar en el DOM:
+ * el grid ubica la valija en la columna 1 abarcando todas las filas y al resto
+ * en la columna 2. Así el orden de lectura y el de teclado siguen siendo el
+ * mismo en teléfono y en escritorio.
+ *
  * Se fueron tres bloques de texto: el chiste de las doscientas personas, que
  * explicaba con palabras lo que ya dicen el número, la barra y los gramos; y el
  * cierre de dos renglones, que la línea de misión dice mejor y desde arriba.
@@ -58,7 +64,7 @@ export default function App() {
             <SuitcaseBar percent={percent} overweight={overweight} />
             {data !== null && (
               <p className="counter__detail">
-                {copy.suitcase.detail(data.gramsTotal, data.peopleTotal, data.percentFull)}
+                {copy.suitcase.detail(data.gramsTotal, data.peopleTotal)}
               </p>
             )}
           </div>
