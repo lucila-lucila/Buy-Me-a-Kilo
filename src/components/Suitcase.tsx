@@ -72,7 +72,14 @@ export function Suitcase({ ratio, overweight = false, breathing = true, classNam
 
   // Y la onda se aplana cuando hay poco líquido: una lámina fina tiene que
   // leerse como una línea que cruza todo el ancho, no como olas.
-  const calm = Math.min(1, clamped * 4)
+  //
+  // Pero no hasta desaparecer. Con `clamped * 4` pelado, al 5,7% la amplitud
+  // quedaba en 0,23 —tres píxeles y medio— y después pasaba por dos desenfoques
+  // de sigma 7 y 16: una franja plana y borrosa corriéndose de costado, que es
+  // indistinguible de una franja quieta. La animación corría, pero no había
+  // nada con forma que se pudiera ver moverse. El piso de 0,45 le deja crestas
+  // desde el primer gramo.
+  const calm = 0.45 + 0.55 * Math.min(1, clamped * 4)
 
   return (
     <div
@@ -116,39 +123,52 @@ export function Suitcase({ ratio, overweight = false, breathing = true, classNam
           <filter id={`softer-${uid}`} x="-25%" y="-25%" width="150%" height="150%">
             <feGaussianBlur stdDeviation="16" />
           </filter>
+          {/* Para el brillo de la superficie: apenas difuminado, no borrado. */}
+          <filter id={`crisp-${uid}`} x="-10%" y="-10%" width="120%" height="120%">
+            <feGaussianBlur stdDeviation="2.5" />
+          </filter>
         </defs>
 
         <g clipPath={`url(#cavity-${uid})`}>
+          {/* El vaivén vertical va en su propio grupo, encima del nivel: el
+              nivel se anima con una transición cuando cambian los gramos, y una
+              animación infinita en el mismo elemento la pisaría. */}
           <g className="wave-level" style={{ transform: `translateY(${level.toFixed(1)}px)` }}>
-            <g
-              className="wave-calm"
-              style={{ transform: `scaleY(${calm.toFixed(3)})`, transformOrigin: `0 ${CAVITY.y}px` }}
-            >
-              <path
-                className="wave wave--back"
-                d={back}
-                fill={`url(#liquid-${uid})`}
-                opacity="0.5"
-                filter={`url(#softer-${uid})`}
-              />
-              <path
-                className="wave wave--front"
-                d={front}
-                fill={`url(#liquid-${uid})`}
-                opacity="0.85"
-                filter={`url(#soft-${uid})`}
-              />
-              {/* El brillo de la superficie: el mismo path, solo el contorno. El
-                  borde de abajo queda fuera de la cavidad y lo recorta el clip. */}
-              <path
-                className="wave wave--shine"
-                d={front}
-                fill="none"
-                stroke="var(--paper)"
-                strokeWidth="5"
-                strokeOpacity="0.55"
-                filter={`url(#soft-${uid})`}
-              />
+            <g className="wave-bob">
+              <g
+                className="wave-calm"
+                style={{ transform: `scaleY(${calm.toFixed(3)})`, transformOrigin: `0 ${CAVITY.y}px` }}
+              >
+                <path
+                  className="wave wave--back"
+                  d={back}
+                  fill={`url(#liquid-${uid})`}
+                  opacity="0.5"
+                  filter={`url(#softer-${uid})`}
+                />
+                <path
+                  className="wave wave--front"
+                  d={front}
+                  fill={`url(#liquid-${uid})`}
+                  opacity="0.85"
+                  filter={`url(#soft-${uid})`}
+                />
+                {/* El brillo de la superficie: el mismo path, solo el contorno.
+                    Va con un desenfoque mucho más chico que el relleno —el de
+                    abajo lo borraba— porque es la única línea con forma
+                    definida que cruza la cavidad, y por lo tanto lo único que
+                    se ve moverse cuando hay poco líquido. El borde de abajo
+                    queda fuera de la cavidad y lo recorta el clip. */}
+                <path
+                  className="wave wave--shine"
+                  d={front}
+                  fill="none"
+                  stroke="var(--paper)"
+                  strokeWidth="5"
+                  strokeOpacity="0.6"
+                  filter={`url(#crisp-${uid})`}
+                />
+              </g>
             </g>
           </g>
         </g>

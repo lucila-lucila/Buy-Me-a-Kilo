@@ -3,9 +3,9 @@
  * Auditoría responsive. Recorre una grilla de anchos y chequea, en cada uno:
  *
  *   - que no haya scroll horizontal accidental
- *   - que los cuatro tiers entren antes del fold cuando la altura alcanza
+ *   - que el botón entre antes del fold cuando la altura alcanza
  *   - que ningún texto se desborde de su caja
- *   - que la cinta del carrusel mantenga la misma velocidad lineal
+ *   - que los doce stickers estén enteros y adentro de su caja
  *
  * Playwright NO es dependencia del proyecto a propósito: instalarlo agrega
  * ~150 MB de navegadores a cada deploy de Vercel para algo que se corre a mano.
@@ -81,18 +81,26 @@ for (const pg of PAGES) for (const vp of VIEWPORTS) {
       }
     }
 
-    const track = document.querySelector('.marquee__track')
-    const row = document.querySelector('.marquee__row')
-    const speed =
-      track && row
-        ? row.getBoundingClientRect().width / parseFloat(getComputedStyle(track).animationDuration)
-        : null
+    // Los doce, enteros: ninguno puede quedar cortado contra el borde de la
+    // grilla ni contra el de la pantalla. Era el defecto de la cinta vieja.
+    const grid = document.querySelector('.grid')
+    let stickers = null
+    if (grid) {
+      const caja = grid.getBoundingClientRect()
+      const items = [...grid.querySelectorAll('.grid__item')]
+      const cortados = items.filter((el) => {
+        const r = el.getBoundingClientRect()
+        return r.left < caja.left - 1 || r.right > caja.right + 1 || r.left < -1 || r.right > window.innerWidth + 1
+      }).length
+      const lado = items.length > 0 ? Math.round(items[0].getBoundingClientRect().width) : 0
+      stickers = { total: items.length, cortados, lado }
+    }
 
     return {
       scrollH: doc.scrollWidth > window.innerWidth,
       lastBottom,
       overflowing,
-      speed,
+      stickers,
     }
   })
 
@@ -104,6 +112,12 @@ for (const pg of PAGES) for (const vp of VIEWPORTS) {
   if (r.lastBottom !== null && !foldOk && !vp.foldOptional) {
     problems.push(`botón cortado (${r.lastBottom} > ${vp.h})`)
   }
+  if (r.stickers && r.stickers.cortados > 0) {
+    problems.push(`${r.stickers.cortados} stickers cortados`)
+  }
+  if (r.stickers && r.stickers.total !== 12) {
+    problems.push(`${r.stickers.total} stickers en vez de 12`)
+  }
 
   if (problems.length) failures++
   rows.push({
@@ -113,7 +127,7 @@ for (const pg of PAGES) for (const vp of VIEWPORTS) {
       r.lastBottom === null
         ? '—'
         : `${r.lastBottom}/${vp.h}${foldOk ? '' : vp.foldOptional ? ' (acepta)' : ' ⚠'}`,
-    speed: r.speed ? `${r.speed.toFixed(1)} px/s` : '—',
+    speed: r.stickers ? `12 de ${r.stickers.lado}px` : '—',
     estado: problems.length ? problems.join(', ') : 'ok',
   })
   for (const o of r.overflowing) rows.push({ vp: '', name: '', fold: '', speed: '', estado: `    ↳ ${o}` })
@@ -123,10 +137,10 @@ for (const pg of PAGES) for (const vp of VIEWPORTS) {
 await browser.close()
 
 const pad = (v, n) => String(v).padEnd(n)
-console.log(`\n${pad('viewport', 11)}${pad('', 26)}${pad('botón/fold', 13)}${pad('carrusel', 12)}estado`)
+console.log(`\n${pad('viewport', 11)}${pad('', 26)}${pad('botón/fold', 13)}${pad('stickers', 14)}estado`)
 console.log('-'.repeat(88))
 for (const r of rows) {
-  console.log(`${pad(r.vp, 11)}${pad(r.name, 26)}${pad(r.fold, 13)}${pad(r.speed, 12)}${r.estado}`)
+  console.log(`${pad(r.vp, 11)}${pad(r.name, 26)}${pad(r.fold, 13)}${pad(r.speed, 14)}${r.estado}`)
 }
 console.log(
   failures === 0

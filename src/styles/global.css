@@ -161,26 +161,20 @@ img {
   max-width: var(--measure);
 }
 
+/* La sección de los doce. El título va arriba y centrado: es lo que explica qué
+   se compra, no una etiqueta arrinconada al costado de una cinta. */
 .section {
-  margin-top: clamp(1.1rem, 3.5vw, 1.75rem);
-  display: flex;
-  align-items: center;
-  gap: clamp(0.6rem, 2vw, 1.1rem);
+  margin-top: clamp(1.75rem, 5vw, 3rem);
 }
 
-/* Angosto a propósito: tres renglones cortos al lado de la cinta, más bajos que
-   las fichas, así el alto de la sección lo sigue poniendo la cinta. */
 .section__heading {
-  flex: none;
-  width: min(12ch, 32%);
-  margin: 0;
+  margin: 0 0 clamp(0.75rem, 2vw, 1.25rem);
   font-family: var(--display);
   font-weight: 400;
-  font-size: var(--fs-micro);
-  line-height: 1.2;
+  font-size: var(--fs-heading);
+  line-height: 1.15;
   letter-spacing: 0.01em;
-  text-align: left;
-  color: var(--paper-dim);
+  text-align: center;
 }
 
 /* -------------------------------------------------------------- suitcase -- */
@@ -255,6 +249,21 @@ img {
   max-width: none;
   z-index: 1;
   pointer-events: none;
+  /* Flota apenas. El transform va en la misma imagen y no en un contenedor: un
+     contenedor con transform crearía un contexto de apilado y le aislaría el
+     mix-blend-mode, que es la forma en que este dibujo se saca el negro de
+     encima. */
+  animation: kilo-float 7s ease-in-out infinite;
+}
+
+@keyframes kilo-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2.2%);
+  }
 }
 
 /* La respiración va en cada capa y no en el contenedor: un transform animado en
@@ -427,99 +436,86 @@ img {
   margin: 0;
 }
 
-/* ------------------------------------------------------------- carrusel -- */
+/* -------------------------------------------------------- los doce enteros -- */
 
-/* La colección desfilando. Los bordes se desvanecen para que los stickers
-   entren y salgan en vez de cortarse contra el canto. */
-/* La velocidad lineal es la misma en todos los anchos. En mobile las fichas son
-   más chicas para que entren más, y la duración se ajusta en la misma
-   proporción: un ciclo recorre 12 x (ficha + gap), y a 37 px/s eso da los
-   segundos de abajo. Si cambiás el tamaño, recalculá la duración. */
-.marquee {
-  --item: 48px;
-  --gap-item: 8px;
-  --cycle: 17.9s;
-  flex: 1;
-  /* Sin esto un hijo de flex no baja de su ancho de contenido y la cinta, que
-     mide doce fichas por dos, empujaría la página entera a lo ancho. */
-  min-width: 0;
-  overflow: hidden;
-  /* Los stickers entran y salen desvaneciéndose contra el fondo en vez de
-     cortarse contra el canto. */
-  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 18%, #000 82%, transparent 100%);
-  mask-image: linear-gradient(to right, transparent 0, #000 18%, #000 82%, transparent 100%);
-}
-
-.marquee__track {
-  display: flex;
-  width: max-content;
-  /* El desplazamiento es exactamente una copia de la lista, así que al terminar
-     el cuadro es idéntico al inicial y el loop no tiene costura. */
-  animation: marquee var(--cycle) linear infinite;
-}
-
-@keyframes marquee {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-50%);
-  }
-}
-
-.marquee:hover .marquee__track,
-.marquee:focus-within .marquee__track {
-  animation-play-state: paused;
-}
-
-.marquee__row {
-  display: flex;
-  gap: var(--gap-item);
+/* Era una cinta infinita y ahora es una grilla quieta. Una cinta corta stickers
+   contra el canto por definición: siempre había uno cortado y otro entrando.
+   Acá están los doce completos, en dos filas de seis, y el movimiento lo pone
+   la flotación individual de cada uno. */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: clamp(0.6rem, 2.5vw, 1.4rem);
   margin: 0;
-  padding: 0 calc(var(--gap-item) / 2);
+  padding: 0;
   list-style: none;
 }
 
-.marquee__item {
-  flex: none;
-  width: var(--item);
-  height: var(--item);
-  /* La cinta lleva un transform animado, así que aísla el screen de sus hijos.
-     Acá el fondo de la página ya es plano, así que una baldosa opaca del color
-     del fondo es invisible y le devuelve al blend con qué mezclar. */
+.grid__item {
+  aspect-ratio: 1;
+  /* La flotación es un transform, y un transform aísla el mix-blend-mode de sus
+     hijos: sin un fondo opaco propio, el sticker vuelve a dibujarse como un
+     cuadrado negro. Del color del fondo, así que la baldosa es invisible. */
   isolation: isolate;
   background: var(--void);
+  animation: float 9s ease-in-out infinite;
+  animation-delay: var(--delay, 0s);
 }
 
-.marquee__item img {
+.grid__item img {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  /* En gris: se ve que los doce existen y qué forma tienen, pero no de qué
-     color son. El color es parte de lo que no sabés hasta que te toca. */
-  filter: grayscale(1) brightness(0.95) contrast(1.05);
+  /* En silueta: se ve que los doce existen y qué forma tienen, pero no de qué
+     color son. El color es parte de lo que no sabés hasta que te toca, y
+     aparece recién en /open. Un punto más de brillo y de contraste que en la
+     cinta vieja, para que no se lean como apagados. */
+  filter: grayscale(1) brightness(1.12) contrast(1.12);
 }
 
-.marquee:focus-visible {
-  outline: 3px solid var(--mint);
-  outline-offset: 6px;
-  border-radius: 8px;
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6%);
+  }
 }
 
-/* Sin movimiento: una fila que se arrastra a mano, sin la copia duplicada. */
+@media (min-width: 620px) {
+  .grid {
+    grid-template-columns: repeat(6, 1fr);
+  }
+}
 
 @media (prefers-reduced-motion: reduce) {
-  .marquee {
-    overflow-x: auto;
-    scrollbar-width: thin;
-  }
-
-  .marquee__track {
+  .grid__item {
     animation: none;
   }
+}
 
-  .marquee__row[aria-hidden] {
-    display: none;
+/* Los bloques de abajo del hero entran al scrollear: fundido y un empujón
+   chico hacia arriba. El escalonado lo pone el transition-delay que manda el
+   componente. */
+.rise {
+  opacity: 0;
+  transform: translateY(14px);
+  transition:
+    opacity 600ms ease,
+    transform 600ms cubic-bezier(0.22, 0.85, 0.25, 1);
+}
+
+.rise--in {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rise {
+    opacity: 1;
+    transform: none;
+    transition: none;
   }
 }
 
@@ -734,17 +730,8 @@ img {
    el rango de 360 a 1440 sin saltos.
    ========================================================================== */
 
-@media (min-width: 620px) {
-  .marquee {
-    --item: 64px;
-    --gap-item: 10px;
-    --cycle: 23.7s;
-  }
-
-  .section__heading {
-    font-size: var(--fs-small);
-  }
-}
+/* Los tamaños de la grilla de stickers viven en su propio bloque, junto al
+   resto de la grilla. Acá no queda nada del carrusel. */
 
 /* Pantallas altas: hay lugar, así que el hero respira y la valija crece. La
    base es la compacta, que es la que tiene que sobrevivir en un teléfono. */
@@ -870,8 +857,14 @@ img {
 /* ------------------------------------------------------- onda del relleno -- */
 
 /* El nivel sube con un easing suave; las tres capas corren desfasadas para que
-   la superficie parezca líquido y no una barra. Este bloque se había perdido en
-   una consolidación de breakpoints, y por eso el relleno quedó plano y quieto. */
+   la superficie parezca líquido y no una barra.
+
+   El desplazamiento horizontal solo se ve si la superficie tiene forma. Con
+   poco líquido la onda queda casi plana, y una franja uniforme que se corre de
+   costado es indistinguible de una franja quieta: por eso el relleno se veía
+   estático aunque la animación estuviera corriendo. Además del piso de
+   amplitud que pone el componente, acá se suma un vaivén vertical, que en una
+   lámina fina sí se lee. */
 .wave-level,
 .wave-calm {
   transition: transform 1200ms cubic-bezier(0.22, 0.85, 0.25, 1);
@@ -881,14 +874,18 @@ img {
   animation: drift 9s linear infinite;
 }
 
-.wave--front {
+/* Cada onda con su período: el de la de atrás es el largo de su propia
+   sinusoide, así que el loop cierra sin costura. */
+.wave--front,
+.wave--shine {
   animation-duration: 6.5s;
   animation-direction: reverse;
 }
 
-.wave--shine {
-  animation-duration: 6.5s;
-  animation-direction: reverse;
+/* La superficie entera sube y baja, despacio. Ocho segundos y seis unidades de
+   las 1024 del dibujo: se nota que respira, no que se sacude. */
+.wave-bob {
+  animation: bob 8s ease-in-out infinite;
 }
 
 @keyframes drift {
@@ -897,6 +894,16 @@ img {
   }
   to {
     transform: translateX(340px);
+  }
+}
+
+@keyframes bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(6px);
   }
 }
 
@@ -960,6 +967,10 @@ img {
 
 /* Sin movimiento: el nivel se muestra quieto, sin ondas corriendo. */
 @media (prefers-reduced-motion: reduce) {
+  .countdown__n {
+    animation: none;
+  }
+
   .wave,
   .spill__blob,
   .spill__drip {
@@ -1007,48 +1018,86 @@ img {
   line-height: 1.2;
 }
 
-/* El plazo. Vuelve adentro de la columna: rompiendo el ancho medía 1408 px en
-   una página donde nada más pasaba de 392, y eso no la hacía importante, hacía
-   que todo lo demás pareciera una columnita apretada al lado.
+/* El plazo, en cuatro cajitas: días, horas, minutos y segundos.
 
-   Con días solamente entra en un renglón en todos los anchos, del teléfono de
-   320 al escritorio, así que la altura está reservada y no hay corte posible. */
+   En cajitas y no en una frase corrida porque la frase con los cuatro tramos
+   medía 1400 px y era lo que rompía el ancho de la página. Así los mismos
+   cuatro números entran en cualquier columna: cada cajita tiene un ancho
+   mínimo y el conjunto no puede pasarse de --measure.
+
+   La altura está reservada para que no salte cuando llega el primer fetch. */
 .countdown {
   display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: center;
-  column-gap: 0.34em;
-  min-height: 1.3em;
+  flex-direction: column;
+  gap: 0.5em;
+  align-items: center;
+  min-height: 4.6em;
   margin: 0;
   max-width: var(--measure);
-  /* En la tipografía de cuerpo y no en la de display, por los números: en Bagel
-     Fat One el "1" mide 7,7 px donde el "4" mide 11,4 y no tiene cifras de
-     ancho tabular. Familjen Grotesk las tiene todas iguales de fábrica. */
   font-family: var(--body);
-  font-weight: 700;
-  font-size: clamp(0.95rem, 0.556vw + 0.875rem, 1.375rem);
-  line-height: 1.3;
   color: var(--paper);
-  text-align: center;
-  letter-spacing: 0.005em;
 }
 
-/* La parte fija, un escalón más chica. La jerarquía la da el tamaño y no el
-   color: bajarle el contraste sería volver al gris tenue de antes. */
-.countdown__lead {
-  white-space: nowrap;
-  font-size: 0.86em;
+.countdown__heading {
+  margin: 0;
+  font-size: var(--fs-micro);
+  letter-spacing: 0.06em;
+  text-transform: lowercase;
+  color: var(--paper-faint);
 }
 
-/* El número, de una pieza y con las cifras de ancho tabular. */
-.countdown__value {
-  white-space: nowrap;
+.countdown__boxes {
+  display: flex;
+  gap: clamp(0.5rem, 1.6vw, 1.1rem);
+}
+
+.countdown__box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15em;
+  /* Ancho mínimo de dos cifras más aire: así las cuatro cajitas miden lo mismo
+     entre sí y ninguna cambia de ancho al cambiar el número. */
+  min-width: 2.6ch;
+}
+
+.countdown__n {
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: clamp(1.5rem, 1.111vw + 1.25rem, 2.5rem);
+  line-height: 1;
+  letter-spacing: 0.01em;
   font-variant-numeric: tabular-nums;
+  /* Entra con un fundido corto: el nodo se reemplaza cuando cambia el número,
+     así que la animación arranca sola en cada cambio. Nada de saltos secos. */
+  animation: countdown-in 340ms ease-out;
 }
 
-/* Menos de una semana: color de acento, sin brillo. */
-.countdown--soon {
+.countdown__label {
+  font-size: var(--fs-micro);
+  letter-spacing: 0.04em;
+  color: var(--paper-faint);
+}
+
+@keyframes countdown-in {
+  from {
+    opacity: 0.15;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* El avión ya salió: una sola línea, sin cajitas. */
+.countdown--gone {
+  justify-content: center;
+  font-weight: 700;
+  font-size: var(--fs-lead);
+}
+
+/* Menos de una semana: color de acento, sin brillo. Solo los números: las
+   etiquetas y el rótulo se quedan apagados, si no el bloque entero se prende. */
+.countdown--soon .countdown__n {
   color: var(--sherbet);
 }
 
@@ -1095,6 +1144,9 @@ img {
   border: 1px solid var(--bubblegum);
   background: linear-gradient(rgba(255, 79, 163, 0.2), rgba(255, 79, 163, 0.07));
   box-shadow: 0 0 32px rgba(255, 79, 163, 0.28);
+  /* El único brillo de la página, latiendo muy despacio. Es la única acción que
+     hay, y un pulso de seis segundos la mantiene viva sin pedir nada. */
+  animation: button-pulse 6s ease-in-out infinite;
   font-family: var(--display);
   font-size: var(--fs-heading);
   line-height: 1.1;
@@ -1107,10 +1159,41 @@ img {
     transform 180ms ease;
 }
 
-.support__button:hover {
-  background: linear-gradient(rgba(255, 79, 163, 0.3), rgba(255, 79, 163, 0.12));
-  box-shadow: 0 0 44px rgba(255, 79, 163, 0.4);
-  transform: translateY(-1px);
+@keyframes button-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 26px rgba(255, 79, 163, 0.22);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(255, 79, 163, 0.38);
+  }
+}
+
+/* En hover se apaga el pulso: una animación le gana a la transición, y sin
+   esto el brillo del hover quedaba pisado por el latido a mitad de camino. */
+.support__button:hover,
+.support__button:focus-visible {
+  animation: none;
+  background: linear-gradient(rgba(255, 79, 163, 0.34), rgba(255, 79, 163, 0.14));
+  box-shadow: 0 0 52px rgba(255, 79, 163, 0.5);
+  transform: translateY(-2px);
+}
+
+.support__button:active {
+  transform: translateY(0);
+  box-shadow: 0 0 30px rgba(255, 79, 163, 0.42);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .support__button,
+  .suitcase__kilo {
+    animation: none;
+  }
+
+  .support__button:hover,
+  .support__button:focus-visible {
+    transform: none;
+  }
 }
 
 .support__note {
@@ -1189,6 +1272,10 @@ img {
     justify-content: flex-start;
   }
 
+  .countdown {
+    align-items: flex-start;
+  }
+
   .counter__detail,
   .support__note {
     text-align: left;
@@ -1210,5 +1297,45 @@ img {
     --glow-x: calc(
       max(0px, (100vw - var(--page)) / 2) + 1.5rem + 0.24 * (min(100vw, var(--page)) - 3rem)
     );
+  }
+}
+
+/* ============================================================================
+   SIN MOVIMIENTO — bloque final
+
+   Va último y junta todo lo que se anima. Los guardas repartidos por la hoja no
+   alcanzaban: una media query no suma especificidad, así que un `animation` que
+   se declara más abajo le gana a un `animation: none` que quedó más arriba. Con
+   prefers-reduced-motion activado quedaron corriendo la respiración de la
+   valija, el vaivén de la onda y el fundido de la cuenta regresiva.
+
+   Medido acá adentro: con la preferencia puesta no queda ninguna animación
+   corriendo en toda la página.
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .suitcase--breathing .suitcase__fill,
+  .suitcase--breathing .suitcase__shell,
+  .suitcase--breathing .spill,
+  .suitcase--overweight .suitcase__fill,
+  .suitcase--overweight .suitcase__shell,
+  .suitcase--overweight .spill,
+  .suitcase__kilo,
+  .wave,
+  .wave-bob,
+  .countdown__n,
+  .grid__item,
+  .support__button,
+  .spill__blob,
+  .spill__drip {
+    animation: none;
+  }
+
+  /* Y las transiciones que hacen crecer cosas solas al cargar. */
+  .wave-level,
+  .wave-calm,
+  .goal__fill,
+  .rise {
+    transition: none;
   }
 }

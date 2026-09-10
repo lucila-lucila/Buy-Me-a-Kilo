@@ -1,11 +1,13 @@
 import { copy } from './copy'
 import { useKilos } from './lib/useKilos'
+import { useIntroCount } from './lib/useIntroCount'
+import { Rise } from './components/Rise'
 import { Suitcase } from './components/Suitcase'
 import { KiloCounter } from './components/KiloCounter'
 import { SuitcaseBar } from './components/SuitcaseBar'
 import { Countdown } from './components/Countdown'
 import { SupportButton } from './components/SupportButton'
-import { StickerMarquee } from './components/StickerMarquee'
+import { StickerGrid } from './components/StickerGrid'
 import { Footer } from './components/Footer'
 import { Grain } from './components/Grain'
 import { Glow } from './components/Glow'
@@ -33,10 +35,16 @@ import { Glow } from './components/Glow'
 export default function App() {
   const { data, stale, clock } = useKilos()
 
-  const percent = data?.percentFull ?? 0
+  // Al cargar, el número y el nivel suben desde cero. Después siguen el valor
+  // real: cuando alguien aporta, el contador va de 1,3 a 1,4, no vuelve a
+  // empezar. La barra sube sola con su transición de CSS, con la misma
+  // duración.
+  const percent = useIntroCount(data?.percentFull ?? null)
+  const kilos = useIntroCount(data?.kilosTotal ?? null)
 
-  // Solo puede pasar una vez: cuando la valija pase los 23 kilos.
-  const overweight = percent > 100
+  // Solo puede pasar una vez: cuando la valija pase los 23 kilos. Se mira el
+  // valor real y no el de la subida, que arranca en cero.
+  const overweight = (data?.percentFull ?? 0) > 100
   const glow = 0.35 + Math.min(1, percent / 100) * 0.65 + (overweight ? 0.3 : 0)
 
   return (
@@ -56,7 +64,7 @@ export default function App() {
           <div className="counter">
             {data !== null && (
               <KiloCounter
-                total={data.kilosTotal}
+                total={kilos}
                 unit={copy.suitcase.ofCapacity(data.capacityKilos)}
                 stale={stale}
               />
@@ -78,18 +86,27 @@ export default function App() {
           <SupportButton />
         </section>
 
-        <StickerMarquee />
+        {/* Lo de abajo del hero entra al scrollear, escalonado. El hero no:
+            está a la vista de entrada y aparecer con retraso lo haría ver
+            roto. */}
+        <Rise>
+          <StickerGrid />
+        </Rise>
 
-        <p className="privacy">
-          {copy.privacy.lines.map((line, i) => (
-            <span key={line}>
-              {line}
-              {i === 0 && <br />}
-            </span>
-          ))}
-        </p>
+        <Rise delay={120}>
+          <p className="privacy">
+            {copy.privacy.lines.map((line, i) => (
+              <span key={line}>
+                {line}
+                {i === 0 && <br />}
+              </span>
+            ))}
+          </p>
+        </Rise>
 
-        <Footer />
+        <Rise delay={240}>
+          <Footer />
+        </Rise>
       </main>
     </>
   )

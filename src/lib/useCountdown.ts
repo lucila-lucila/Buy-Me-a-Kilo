@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { TICK_MS } from '../config/countdown'
+import { TICK_MS, TICK_REDUCED_MS } from '../config/countdown'
 import type { Clock } from './useKilos'
 
 const HOUR = 3_600_000
@@ -10,17 +10,17 @@ export interface Countdown {
   totalMs: number
   /** Días enteros, hacia abajo: 44 días y 8 horas son 44 días, no 45. */
   days: number
-  /** Horas dentro del día en curso y minutos dentro de la hora. Se usan solos,
-      el último día, cuando ya no quedan días que decir. */
+  /** Cada tramo dentro del anterior: horas del día, minutos de la hora, y así. */
   hours: number
   minutes: number
+  seconds: number
   departed: boolean
 }
 
 /**
  * La cuenta regresiva, descontando sola entre un fetch y el siguiente.
  *
- * Un solo temporizador en toda la página, de un minuto, y no le pide nada al
+ * Un solo temporizador en toda la página, de un segundo, y no le pide nada al
  * servidor: el fetch de /api/kilos sigue siendo uno cada treinta segundos y lo
  * único que trae es el ancla. Entre ancla y ancla esto resta tiempo local.
  *
@@ -31,15 +31,15 @@ export interface Countdown {
  * Vive en su propio componente para que el tick no vuelva a renderizar la
  * valija, la barra y el carrusel cada vez.
  */
-export function useCountdown(clock: Clock | null): Countdown | null {
+export function useCountdown(clock: Clock | null, live = true): Countdown | null {
   const [now, setNow] = useState(() => Date.now())
 
   useEffect(() => {
     if (clock === null) return
-    const id = window.setInterval(() => setNow(Date.now()), TICK_MS)
+    const id = window.setInterval(() => setNow(Date.now()), live ? TICK_MS : TICK_REDUCED_MS)
     setNow(Date.now())
     return () => window.clearInterval(id)
-  }, [clock])
+  }, [clock, live])
 
   if (clock === null) return null
 
@@ -50,6 +50,7 @@ export function useCountdown(clock: Clock | null): Countdown | null {
     days: Math.floor(totalMs / DAY),
     hours: Math.floor((totalMs % DAY) / HOUR),
     minutes: Math.floor((totalMs % HOUR) / 60_000),
+    seconds: Math.floor((totalMs % 60_000) / 1000),
     departed: totalMs <= 0,
   }
 }

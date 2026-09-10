@@ -1,16 +1,4 @@
 import { gramsForDollars } from './config/suitcase'
-import type { Countdown } from './lib/useCountdown'
-
-/**
- * Una unidad de la cuenta regresiva. Sale numerada y con la palabra aparte
- * porque el número se dibuja en una casilla de ancho fijo: si "3 seconds" y
- * "13 seconds" no ocupan lo mismo, la frase entera se corre cada diez segundos.
- */
-export interface CountdownUnit {
-  n: number
-  /** Ya en plural o en singular, según corresponda. */
-  label: string
-}
 
 const WORDS = [
   'zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine',
@@ -72,35 +60,14 @@ export const copy = {
   },
 
   countdown: {
-    /**
-     * En primera persona. No es "el avión": es su vuelo, y el plazo es de ella
-     * antes que de la página. La parte fija va separada del número para poder
-     * darle a la cifra más peso visual que al resto de la frase.
-     */
-    lead: 'my flight to japan leaves in',
+    /** El rótulo de arriba. Chico: lo que se lee son los números. */
+    heading: 'until the plane leaves for japan',
 
     /**
-     * La unidad que se dice, que es una sola: los días.
-     *
-     *   44 days
-     *   8 hours      el último día, cuando ya no quedan días
-     *   12 minutes   la última hora
-     *
-     * Se toma la primera que no está en cero. Decir "0 days, 8 hours" el último
-     * día sería peor que bajar de unidad, y decir "0 days" solo, mucho peor.
+     * Las etiquetas de las cuatro cajitas. En plural siempre: son rótulos de
+     * columna, no una frase, y "1 hours" no se lee como error acá.
      */
-    units: (c: Countdown): CountdownUnit[] => {
-      const all = [
-        { n: c.days, word: 'day' },
-        { n: c.hours, word: 'hour' },
-        { n: c.minutes, word: 'minute' },
-      ]
-      const first = all.find((u) => u.n > 0)
-      return first === undefined ? [] : [{ n: first.n, label: first.n === 1 ? first.word : `${first.word}s` }]
-    },
-
-    /** El último minuto. No hay segundero, así que se dice en palabras. */
-    almost: 'less than a minute',
+    labels: { days: 'days', hours: 'hours', minutes: 'minutes', seconds: 'seconds' } as const,
 
     /** En cero. Punto final: es la única frase de la página que lo lleva. */
     gone: 'the flight left.',
