@@ -15,6 +15,23 @@ const CAVITY = { x: 246, y: 338, w: 536, h: 418, r: 62 }
 /** Amplitud máxima de las dos ondas. Define cuánto hay que hundir el nivel. */
 const MAX_AMPLITUDE = 17
 
+/**
+ * Kilo, adentro de la valija.
+ *
+ * La caja está en el mismo espacio de 1024 que la cavidad. El dibujo ocupa el
+ * 70% de su cuadro (medido: de 152 a 869 en x, de 116 a 903 en y), así que la
+ * caja va bastante más grande que el cuerpo que se ve: con estos números el
+ * cuerpo mide 260 x 285 y queda parado en el piso de la cavidad, con los pies
+ * apenas por debajo de la superficie del líquido.
+ *
+ * No se mueve con el nivel. El relleno sube por detrás de él.
+ */
+const KILO = { x: 329, y: 413, size: 371 }
+
+/** De coordenadas de la ilustración a porcentaje de la caja de la valija.
+ *  Las capas van de -18% a 118%, así que el 0 de la ilustración cae en -18. */
+const toBox = (u: number) => `${(-18 + (u / 1024) * 136).toFixed(2)}%`
+
 /** Superficie de la onda: una sinusoide, más ancha que el SVG para poder correrla. */
 function wavePath(amplitude: number, wavelength: number, phase: number): string {
   const startX = -512
@@ -136,6 +153,22 @@ export function Suitcase({ ratio, overweight = false, breathing = true, classNam
           </g>
         </g>
       </svg>
+
+      {/* Entre el relleno y la carcasa: por delante del líquido y por detrás
+          del marco, que es lo que lo hace leer como que está adentro. Va con
+          blend-screen igual que el resto de las ilustraciones —son negros que
+          se vuelven transparentes al mezclar— y con la misma máscara de borde,
+          que es la que evita el rectángulo del WebP. */}
+      <img
+        className="suitcase__kilo blend-screen"
+        src="/stickers/webp/sticker_09.webp"
+        alt=""
+        width={1024}
+        height={1024}
+        decoding="async"
+        style={{ left: toBox(KILO.x), top: toBox(KILO.y), width: `${((KILO.size / 1024) * 136).toFixed(2)}%` }}
+        {...({ fetchpriority: 'high' } as Record<string, string>)}
+      />
 
       <img
         className="suitcase__shell blend-screen"

@@ -245,6 +245,18 @@ img {
   z-index: 2;
 }
 
+/* Kilo. Misma capa que el relleno y después en el DOM, así que se dibuja
+   encima de él y debajo de la carcasa. La posición y el tamaño los pone el
+   componente, en el mismo espacio de coordenadas que la cavidad. */
+.suitcase__kilo {
+  position: absolute;
+  aspect-ratio: 1;
+  height: auto;
+  max-width: none;
+  z-index: 1;
+  pointer-events: none;
+}
+
 /* La respiración va en cada capa y no en el contenedor: un transform animado en
    el contenedor crea un contexto de apilado, y eso aísla el mix-blend-mode de la
    carcasa, que vuelve a dibujarse como un cuadrado negro. */
