@@ -97,6 +97,7 @@ export default function OpenScene() {
               <Suitcase
                 ratio={percent / 100}
                 breathing={false}
+        alt={copy.alt.suitcase}
                 overweight={percent > 100}
                 className="suitcase--stage"
               />

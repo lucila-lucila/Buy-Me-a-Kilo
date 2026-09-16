@@ -5,7 +5,7 @@
  *   - que no haya scroll horizontal accidental
  *   - que el botón entre antes del fold cuando la altura alcanza
  *   - que ningún texto se desborde de su caja
- *   - que los doce stickers estén enteros y adentro de su caja
+ *   - que Kilo y la valija no se salgan de la pantalla
  *
  * Playwright NO es dependencia del proyecto a propósito: instalarlo agrega
  * ~150 MB de navegadores a cada deploy de Vercel para algo que se corre a mano.
@@ -81,26 +81,23 @@ for (const pg of PAGES) for (const vp of VIEWPORTS) {
       }
     }
 
-    // Los doce, enteros: ninguno puede quedar cortado contra el borde de la
-    // grilla ni contra el de la pantalla. Era el defecto de la cinta vieja.
-    const grid = document.querySelector('.grid')
-    let stickers = null
-    if (grid) {
-      const caja = grid.getBoundingClientRect()
-      const items = [...grid.querySelectorAll('.grid__item')]
-      const cortados = items.filter((el) => {
-        const r = el.getBoundingClientRect()
-        return r.left < caja.left - 1 || r.right > caja.right + 1 || r.left < -1 || r.right > window.innerWidth + 1
-      }).length
-      const lado = items.length > 0 ? Math.round(items[0].getBoundingClientRect().width) : 0
-      stickers = { total: items.length, cortados, lado }
+    // Kilo y la valija. Las capas del dibujo se pasan del cuadro a propósito y
+    // la escena las recorta, así que acá no se mide si se salen —para eso está
+    // scrollH, que mira el documento entero— sino que Kilo entre en su caja.
+    const stage = document.querySelector('.scene')
+    let escena = null
+    if (stage) {
+      const caja = stage.getBoundingClientRect()
+      const kilo = document.querySelector('.scene__kilo')?.getBoundingClientRect()
+      const fuera = kilo && (kilo.left < caja.left - 1 || kilo.right > caja.right + 1) ? 1 : 0
+      escena = { fuera, kilo: kilo ? Math.round(kilo.width) : 0 }
     }
 
     return {
       scrollH: doc.scrollWidth > window.innerWidth,
       lastBottom,
       overflowing,
-      stickers,
+      escena,
     }
   })
 
@@ -112,11 +109,8 @@ for (const pg of PAGES) for (const vp of VIEWPORTS) {
   if (r.lastBottom !== null && !foldOk && !vp.foldOptional) {
     problems.push(`botón cortado (${r.lastBottom} > ${vp.h})`)
   }
-  if (r.stickers && r.stickers.cortados > 0) {
-    problems.push(`${r.stickers.cortados} stickers cortados`)
-  }
-  if (r.stickers && r.stickers.total !== 12) {
-    problems.push(`${r.stickers.total} stickers en vez de 12`)
+  if (r.escena && r.escena.fuera > 0) {
+    problems.push('Kilo se sale de su caja')
   }
 
   if (problems.length) failures++
@@ -127,7 +121,7 @@ for (const pg of PAGES) for (const vp of VIEWPORTS) {
       r.lastBottom === null
         ? '—'
         : `${r.lastBottom}/${vp.h}${foldOk ? '' : vp.foldOptional ? ' (acepta)' : ' ⚠'}`,
-    speed: r.stickers ? `12 de ${r.stickers.lado}px` : '—',
+    speed: r.escena ? `kilo ${r.escena.kilo}px` : '—',
     estado: problems.length ? problems.join(', ') : 'ok',
   })
   for (const o of r.overflowing) rows.push({ vp: '', name: '', fold: '', speed: '', estado: `    ↳ ${o}` })
@@ -137,7 +131,7 @@ for (const pg of PAGES) for (const vp of VIEWPORTS) {
 await browser.close()
 
 const pad = (v, n) => String(v).padEnd(n)
-console.log(`\n${pad('viewport', 11)}${pad('', 26)}${pad('botón/fold', 13)}${pad('stickers', 14)}estado`)
+console.log(`\n${pad('viewport', 11)}${pad('', 26)}${pad('botón/fold', 13)}${pad('escena', 14)}estado`)
 console.log('-'.repeat(88))
 for (const r of rows) {
   console.log(`${pad(r.vp, 11)}${pad(r.name, 26)}${pad(r.fold, 13)}${pad(r.speed, 14)}${r.estado}`)

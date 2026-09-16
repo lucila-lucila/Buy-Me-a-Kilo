@@ -6,7 +6,7 @@ import { resolve } from 'node:path'
 const DEV_GRAMS = 1309
 const DEV_PEOPLE = 289
 const CAPACITY_G = 23_000
-const DEV_DEPARTURE = '2026-10-22T00:00:00-03:00'
+const DEV_DEPARTURE = '2026-10-26T00:00:00-03:00'
 
 /**
  * Stand-in de las funciones de Vercel para poder trabajar sin KV.

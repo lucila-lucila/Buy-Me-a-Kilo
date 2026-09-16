@@ -2,43 +2,34 @@ import { copy } from './copy'
 import { useKilos } from './lib/useKilos'
 import { useIntroCount } from './lib/useIntroCount'
 import { Rise } from './components/Rise'
-import { Suitcase } from './components/Suitcase'
+import { Scene } from './components/Scene'
 import { KiloCounter } from './components/KiloCounter'
 import { SuitcaseBar } from './components/SuitcaseBar'
 import { Countdown } from './components/Countdown'
 import { SupportButton } from './components/SupportButton'
-import { StickerGrid } from './components/StickerGrid'
 import { Footer } from './components/Footer'
 import { Grain } from './components/Grain'
 import { Glow } from './components/Glow'
 
 /**
- * El orden del hero es el camino al clic, y nada se mete en el medio:
+ * Una sola columna centrada, con aire.
  *
- *   título · línea de misión · valija · número · barra · métricas
- *   cuenta regresiva · mensaje central · botón · la línea de los gramos
+ *   título · misión · destino · Kilo con la valija detrás · número · barra
+ *   métricas · cuenta regresiva · botón · gramos · acceso a los juegos
  *
- * En escritorio esa pila se parte en dos columnas —la valija a la izquierda,
- * todo lo demás a la derecha— sin mover una sola etiqueta de lugar en el DOM:
- * el grid ubica la valija en la columna 1 abarcando todas las filas y al resto
- * en la columna 2. Así el orden de lectura y el de teclado siguen siendo el
- * mismo en teléfono y en escritorio.
+ * Los juegos no viven acá: viven detrás de un botón, en una capa por encima. La
+ * página es minimalista y los juegos son opcionales, escondidos a un clic.
  *
- * Se fueron tres bloques de texto: el chiste de las doscientas personas, que
- * explicaba con palabras lo que ya dicen el número, la barra y los gramos; y el
- * cierre de dos renglones, que la línea de misión dice mejor y desde arriba.
- *
- * La cuenta regresiva es su propio componente porque tickea cada segundo. Acá
- * no hay ningún estado que se mueva solo: esta función se vuelve a renderizar
- * una vez cada treinta segundos, cuando llega el fetch.
+ * Acá no hay ningún estado que se mueva solo: esta función se vuelve a
+ * renderizar una vez cada treinta segundos, cuando llega el fetch. La cuenta
+ * regresiva tiene su propio tick adentro de su componente.
  */
 export default function App() {
   const { data, stale, clock } = useKilos()
 
   // Al cargar, el número y el nivel suben desde cero. Después siguen el valor
   // real: cuando alguien aporta, el contador va de 1,3 a 1,4, no vuelve a
-  // empezar. La barra sube sola con su transición de CSS, con la misma
-  // duración.
+  // empezar. La barra sube sola con su transición de CSS, misma duración.
   const percent = useIntroCount(data?.percentFull ?? null)
   const kilos = useIntroCount(data?.kilosTotal ?? null)
 
@@ -55,11 +46,14 @@ export default function App() {
         <section className="hero">
           <h1 className="hero__title">{copy.hero.title}</h1>
 
-          {/* La carta de presentación: para qué existen los stickers. */}
-          <p className="hero__mission">{copy.hero.mission}</p>
+          <p className="hero__mission">
+            {copy.hero.mission}
+            <br />
+            {copy.hero.next}
+          </p>
 
           {/* El nivel sale del mismo percentFull que la barra y los números. */}
-          <Suitcase ratio={percent / 100} overweight={overweight} />
+          <Scene ratio={percent / 100} overweight={overweight} />
 
           <div className="counter">
             {data !== null && (
@@ -71,29 +65,21 @@ export default function App() {
             )}
             <SuitcaseBar percent={percent} overweight={overweight} />
             {data !== null && (
-              <p className="counter__detail">
+              <p className="counter__detail" aria-live="polite">
                 {copy.suitcase.detail(data.gramsTotal, data.peopleTotal)}
               </p>
             )}
           </div>
 
-          {/* Fija y visible: es lo único que mete presión de tiempo. */}
           <Countdown clock={clock} />
-
-          <p className="hero__lead">{copy.hero.lead}</p>
 
           {/* El botón, con la línea de los gramos pegada abajo. */}
           <SupportButton />
         </section>
 
-        {/* Lo de abajo del hero entra al scrollear, escalonado. El hero no:
-            está a la vista de entrada y aparecer con retraso lo haría ver
-            roto. */}
+        {/* Lo de abajo entra al scrollear, escalonado. El hero no: está a la
+            vista de entrada y aparecer con retraso lo haría ver roto. */}
         <Rise>
-          <StickerGrid />
-        </Rise>
-
-        <Rise delay={120}>
           <p className="privacy">
             {copy.privacy.lines.map((line, i) => (
               <span key={line}>
@@ -104,7 +90,7 @@ export default function App() {
           </p>
         </Rise>
 
-        <Rise delay={240}>
+        <Rise delay={120}>
           <Footer />
         </Rise>
       </main>

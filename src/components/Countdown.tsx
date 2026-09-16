@@ -1,34 +1,30 @@
 import { copy } from '../copy'
 import { URGENT_MS } from '../config/countdown'
 import { useCountdown } from '../lib/useCountdown'
-import { useReducedMotion } from '../lib/reducedMotion'
 import type { Countdown as CountdownState } from '../lib/useCountdown'
 import type { Clock } from '../lib/useKilos'
 
 /**
- * La cuenta regresiva, en cuatro cajitas.
+ * La cuenta regresiva, en tres cajitas.
  *
- *    41       03       27       16
- *   days    hours   minutes  seconds
+ *    41       03       27
+ *   days    hours   minutes
  *
  * En cajitas y no en una frase corrida: la frase con los cuatro tramos medía
- * 1400 px y era lo que había roto el ancho de la página. Así los mismos cuatro
- * números entran en cualquier columna.
+ * 1400 px y era lo que había roto el ancho de la página.
  *
- * Horas, minutos y segundos van con cero adelante. Acá no se lee como reloj de
- * oferta —es una grilla de números, no una frase— y de paso el ancho de cada
- * cajita no cambia nunca.
+ * Sin segundos: un segundero es lo único que se movería todo el tiempo y se
+ * llevaría la atención que tienen que tener Kilo y el botón.
  *
- * Con movimiento reducido no hay segundero: quedan días, horas y minutos, y el
- * tick pasa a un minuto.
+ * Horas y minutos van con cero adelante. Acá no se lee como reloj de oferta
+ * —es una grilla de números, no una frase— y de paso el ancho de cada cajita no
+ * cambia nunca.
  *
- * Componente propio por el tick de un segundo: si el estado viviera en App se
- * volverían a renderizar la valija, la barra y los stickers sesenta veces por
- * minuto para mover un dígito.
+ * Componente propio para que el tick no vuelva a renderizar Kilo, la valija ni
+ * la barra cada minuto.
  */
 export function Countdown({ clock }: { clock: Clock | null }) {
-  const reduced = useReducedMotion()
-  const c = useCountdown(clock, !reduced)
+  const c = useCountdown(clock)
 
   // Mientras no llegó el primer fetch queda vacía, con la altura ya reservada
   // por CSS: no tiene sentido anunciar un plazo que todavía no sabemos.
@@ -41,15 +37,17 @@ export function Countdown({ clock }: { clock: Clock | null }) {
     ['hours', pad(c.hours), copy.countdown.labels.hours],
     ['minutes', pad(c.minutes), copy.countdown.labels.minutes],
   ]
-  if (!reduced) boxes.push(['seconds', pad(c.seconds), copy.countdown.labels.seconds])
 
   return (
     <div className={`countdown${c.totalMs < URGENT_MS ? ' countdown--soon' : ''}`}>
       <p className="countdown__heading">{copy.countdown.heading}</p>
 
-      {/* Un solo texto para el lector de pantalla, sin segundos y sin live
-          region: cuatro números que cambian por segundo son inusables leídos. */}
-      <p className="sr-only">{spoken(c)}</p>
+      {/* Un solo texto para el lector de pantalla. aria-live="polite" y no
+          "assertive": que lo anuncie cuando termine lo que está leyendo, no que
+          lo interrumpa cada vez que baja un minuto. */}
+      <p className="sr-only" aria-live="polite">
+        {spoken(c)}
+      </p>
 
       <div className="countdown__boxes" aria-hidden="true">
         {boxes.map(([key, value, label]) => (

@@ -125,7 +125,9 @@ img {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: clamp(0.4rem, 1.6svh, 1rem);
+  /* Con tres bloques menos que antes hay lugar para que respire, pero no
+     tanto: el botón tiene que seguir entrando antes del fold en 360x640. */
+  gap: clamp(0.6rem, 1.7svh, 1.15rem);
 }
 
 .hero__title {
@@ -161,20 +163,75 @@ img {
   max-width: var(--measure);
 }
 
-/* La sección de los doce. El título va arriba y centrado: es lo que explica qué
-   se compra, no una etiqueta arrinconada al costado de una cinta. */
-.section {
-  margin-top: clamp(1.75rem, 5vw, 3rem);
+/* ------------------------------------------------------------ el escenario -- */
+
+/* Kilo adelante, la valija atrás.
+
+   Sin opacity, sin filter y sin transform en esta caja ni en la de la valija:
+   las dos ilustraciones van con mix-blend-mode: screen, y cualquiera de esas
+   tres propiedades crea un contexto de apilado que aísla la mezcla y las
+   devuelve a ser cuadrados negros. Ya pasó tres veces. Lo que se puede apagar
+   se apaga sobre la imagen misma, que es donde el blend sigue funcionando. */
+.scene {
+  position: relative;
+  width: min(88vw, 40svh, 440px);
+  /* Apenas más ancha que alta. Kilo se apoya en el piso de la caja y la valija
+     ocupa la parte de arriba, así que un cuadrado entero dejaba aire muerto
+     abajo y empujaba el botón fuera del fold en un teléfono. */
+  aspect-ratio: 1 / 0.95;
+  margin-inline: auto;
+  /* Las capas de la valija se pasan un 36% de su cuadro para que el dibujo se
+     vea más grande sin ocupar más alto. Con la valija al 100% de la escena eso
+     se salía de la pantalla y aparecía scroll horizontal. `clip` lo recorta sin
+     crear un contenedor de scroll —y sin crear un contexto de apilado, que le
+     aislaría el blend a las dos ilustraciones—. Lo que se recorta es aire
+     transparente: el dibujo empieza recién al 8,8% de su cuadro. */
+  overflow: clip;
 }
 
-.section__heading {
-  margin: 0 0 clamp(0.75rem, 2vw, 1.25rem);
-  font-family: var(--display);
-  font-weight: 400;
-  font-size: var(--fs-heading);
-  line-height: 1.15;
-  letter-spacing: 0.01em;
-  text-align: center;
+/* Los overrides del escenario van con dos clases a propósito: .suitcase define
+   su propio ancho y sus márgenes más abajo en esta hoja, y con una sola clase
+   le ganaba por orden. Ya me pasó con la cuenta regresiva y con el botón. */
+.scene .scene__suitcase {
+  position: absolute;
+  inset: 0 0 auto 0;
+  width: 100%;
+  /* El componente trae márgenes negativos para cancelar el aire transparente
+     del archivo; acá la posición es explícita y no hacen falta. */
+  margin-block: 0;
+}
+
+/* Apagada, pero sobre la imagen y no sobre el contenedor: opacity en el
+   contenedor crea un contexto de apilado y le aísla el blend a la carcasa. El
+   relleno no se apaga: es el medidor, y es lo que tiene que verse subir. */
+.scene .suitcase__shell {
+  opacity: 0.78;
+}
+
+/* Kilo: adelante de todo, y más angosto que la cavidad a propósito, para que el
+   líquido se siga viendo subir a los dos costados de él. */
+.scene__kilo {
+  position: absolute;
+  left: 15%;
+  bottom: 0;
+  width: 70%;
+  height: auto;
+  max-width: none;
+  z-index: 3;
+  pointer-events: none;
+  /* Flota apenas. El transform va en la imagen misma y no en un contenedor:
+     un contenedor con transform le aislaría el blend. */
+  animation: kilo-float 7s ease-in-out infinite;
+}
+
+@keyframes kilo-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2.4%);
+  }
 }
 
 /* -------------------------------------------------------------- suitcase -- */
@@ -436,89 +493,6 @@ img {
   margin: 0;
 }
 
-/* -------------------------------------------------------- los doce enteros -- */
-
-/* Era una cinta infinita y ahora es una grilla quieta. Una cinta corta stickers
-   contra el canto por definición: siempre había uno cortado y otro entrando.
-   Acá están los doce completos, en dos filas de seis, y el movimiento lo pone
-   la flotación individual de cada uno. */
-.grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: clamp(0.6rem, 2.5vw, 1.4rem);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.grid__item {
-  aspect-ratio: 1;
-  /* La flotación es un transform, y un transform aísla el mix-blend-mode de sus
-     hijos: sin un fondo opaco propio, el sticker vuelve a dibujarse como un
-     cuadrado negro. Del color del fondo, así que la baldosa es invisible. */
-  isolation: isolate;
-  background: var(--void);
-  animation: float 9s ease-in-out infinite;
-  animation-delay: var(--delay, 0s);
-}
-
-.grid__item img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  /* En silueta: se ve que los doce existen y qué forma tienen, pero no de qué
-     color son. El color es parte de lo que no sabés hasta que te toca, y
-     aparece recién en /open. Un punto más de brillo y de contraste que en la
-     cinta vieja, para que no se lean como apagados. */
-  filter: grayscale(1) brightness(1.12) contrast(1.12);
-}
-
-@keyframes float {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-6%);
-  }
-}
-
-@media (min-width: 620px) {
-  .grid {
-    grid-template-columns: repeat(6, 1fr);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .grid__item {
-    animation: none;
-  }
-}
-
-/* Los bloques de abajo del hero entran al scrollear: fundido y un empujón
-   chico hacia arriba. El escalonado lo pone el transition-delay que manda el
-   componente. */
-.rise {
-  opacity: 0;
-  transform: translateY(14px);
-  transition:
-    opacity 600ms ease,
-    transform 600ms cubic-bezier(0.22, 0.85, 0.25, 1);
-}
-
-.rise--in {
-  opacity: 1;
-  transform: none;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .rise {
-    opacity: 1;
-    transform: none;
-    transition: none;
-  }
-}
-
 /* -------------------------------------------------------------- privacy -- */
 
 .privacy {
@@ -741,7 +715,7 @@ img {
   }
 
   .hero {
-    gap: clamp(0.35rem, 1.6vw, 0.9rem);
+    gap: clamp(0.7rem, 1.9vw, 1.35rem);
   }
 
   .suitcase {
@@ -907,9 +881,10 @@ img {
   }
 }
 
-/* El líquido brilla dentro de la valija en vez de estar pegado encima. */
+/* El líquido brilla dentro de la valija en vez de estar pegado encima. Apenas,
+   que la valija está en segundo plano y el que tiene que resaltar es Kilo. */
 .suitcase__fill {
-  filter: drop-shadow(0 0 22px rgba(123, 240, 200, 0.28));
+  filter: drop-shadow(0 0 16px rgba(123, 240, 200, 0.18));
 }
 
 .spill__blob {
@@ -1185,11 +1160,6 @@ img {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .support__button,
-  .suitcase__kilo {
-    animation: none;
-  }
-
   .support__button:hover,
   .support__button:focus-visible {
     transform: none;
@@ -1203,114 +1173,18 @@ img {
   max-width: var(--measure);
 }
 
-/* Este bloque va último a propósito. Las reglas de adentro tienen la misma
-   especificidad que las que pisan —una media query no suma especificidad—, así
-   que puesto más arriba perdía contra .countdown y .support, que se definen
-   cerca del final: la cuenta regresiva y el botón se quedaban centrados en una
-   columna alineada a la izquierda. */
-/* ------------------------------------------------------------ dos columnas --
-
-   En escritorio la pila del hero se abre en dos: la valija a la izquierda,
-   ocupando su mitad, y todo el resto a la derecha alineado a la izquierda.
-
-   El DOM no cambia. La valija se ubica en la columna 1 abarcando todas las
-   filas y el resto cae solo en la columna 2, una fila por bloque, en el mismo
-   orden en que están escritos. Así el orden de lectura, el del teclado y el del
-   teléfono siguen siendo el mismo, y abajo de 900px alcanza con no aplicar
-   nada: vuelve a ser el flex column centrado de siempre.
-
-   900px y no 620: abajo de eso la valija en media columna queda más chica que
-   el texto que tiene al lado y deja de ser el objeto de la página. */
-@media (min-width: 900px) {
-  .hero {
-    display: grid;
-    grid-template-columns: minmax(0, 48%) minmax(0, 1fr);
-    /* Las seis filas de la columna derecha, declaradas: título, misión,
-       contador, cuenta regresiva, mensaje y botón. Van explícitas porque
-       `grid-row: 1 / -1` se cuenta contra la grilla explícita: sin estas filas,
-       -1 es la línea 1 y la valija ocupa un solo renglón en vez de la columna
-       entera, que era justo lo que la dejaba doscientos píxeles más arriba. */
-    grid-template-rows: repeat(6, auto);
-    column-gap: clamp(2rem, 4vw, 3.5rem);
-    row-gap: clamp(0.5rem, 1.4vw, 1.1rem);
-    align-items: center;
-    text-align: left;
-  }
-
-  /* Todas las filas, para que la valija quede centrada contra la columna
-     entera y no contra el primer renglón. */
-  .hero > .suitcase {
-    grid-column: 1;
-    grid-row: 1 / -1;
-    align-self: center;
-    justify-self: center;
-    /* Acá el tope no lo pone el ancho de la pantalla sino el de su columna: con
-       las capas pasándose un 36%, más grande que esto y el borde transparente
-       se sale por la izquierda y aparece scroll horizontal. */
-    --suitcase-size: min(34vw, 52svh, 480px);
-  }
-
-  .hero > :not(.suitcase) {
-    grid-column: 2;
-    justify-self: stretch;
-  }
-
-  /* Lo que estaba centrado dentro de la columna pasa a arrancar de la
-     izquierda. Ninguno cambia de tamaño ni de orden. */
-  .hero__mission,
-  .hero__lead {
-    text-align: left;
-  }
-
-  .counter,
-  .support {
-    align-items: flex-start;
-  }
-
-  .countdown,
-  .counter__number {
-    justify-content: flex-start;
-  }
-
-  .countdown {
-    align-items: flex-start;
-  }
-
-  .counter__detail,
-  .support__note {
-    text-align: left;
-  }
-
-  /* El resplandor se corre detrás de la valija: centrado en la página, que es
-     donde estaba, en dos columnas cae en el medio de la nada.
-
-     Va en :root y no en .page porque .glow es hermano de .page, no hijo: se
-     posiciona contra el viewport y no hereda nada de la columna. Y va en
-     píxeles calculados y no en porcentaje porque el porcentaje sería del
-     viewport entero, que crece mientras la columna se queda en 1100: a 1920 el
-     resplandor quedaba 187 px a la izquierda de la valija.
-
-     La cuenta es el centro de la columna izquierda en coordenadas de pantalla:
-     el margen que centra la página, más su padding, más un cuarto del ancho de
-     contenido, que es la mitad de la columna del 48%. */
-  :root {
-    --glow-x: calc(
-      max(0px, (100vw - var(--page)) / 2) + 1.5rem + 0.24 * (min(100vw, var(--page)) - 3rem)
-    );
-  }
-}
-
 /* ============================================================================
    SIN MOVIMIENTO — bloque final
 
    Va último y junta todo lo que se anima. Los guardas repartidos por la hoja no
-   alcanzaban: una media query no suma especificidad, así que un `animation` que
-   se declara más abajo le gana a un `animation: none` que quedó más arriba. Con
-   prefers-reduced-motion activado quedaron corriendo la respiración de la
-   valija, el vaivén de la onda y el fundido de la cuenta regresiva.
+   alcanzan: una media query no suma especificidad, así que un `animation` que
+   se declara más abajo le gana a un `animation: none` que quedó más arriba.
+   Este bloque ya se perdió una vez en una limpieza, y con él volvieron a
+   quedar corriendo la respiración de la valija, el vaivén de la onda, la
+   flotación de Kilo y el fundido de la cuenta regresiva.
 
-   Medido acá adentro: con la preferencia puesta no queda ninguna animación
-   corriendo en toda la página.
+   Verificado recorriendo el DOM entero: con la preferencia puesta no queda
+   ninguna animación corriendo en toda la página.
    ========================================================================== */
 
 @media (prefers-reduced-motion: reduce) {
@@ -1320,11 +1194,10 @@ img {
   .suitcase--overweight .suitcase__fill,
   .suitcase--overweight .suitcase__shell,
   .suitcase--overweight .spill,
-  .suitcase__kilo,
+  .scene__kilo,
   .wave,
   .wave-bob,
   .countdown__n,
-  .grid__item,
   .support__button,
   .spill__blob,
   .spill__drip {

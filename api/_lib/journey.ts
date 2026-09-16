@@ -30,11 +30,17 @@ export const SEED_PEOPLE = envInt('SEED_PEOPLE', 289)
 export const TARGET_PEOPLE = envInt('TARGET_PEOPLE', 5200)
 
 /**
- * Medianoche de Buenos Aires del 22 de octubre de 2026. Es solo el respaldo:
- * el valor real vive en DEPARTURE_DATE, cargado en los tres entornos de Vercel.
- * Si algún día la fecha se mueve, se mueve ahí y no hace falta un deploy.
+ * Medianoche de Buenos Aires del 26 de octubre de 2026.
+ *
+ * Es SOLO el respaldo. El valor que manda vive en DEPARTURE_DATE, cargado en
+ * los tres entornos de Vercel: si la fecha se mueve otra vez, se mueve ahí y no
+ * hace falta ningún deploy. Esta constante existe para que la página no quede
+ * sin fecha si la variable falta o llega vacía.
+ *
+ * En el cliente no hay ninguna fecha: /api/kilos le manda los milisegundos que
+ * faltan, ya calculados contra esta función.
  */
-const DEPARTURE_FALLBACK = '2026-10-22T00:00:00-03:00'
+const DEPARTURE_FALLBACK = '2026-10-26T00:00:00-03:00'
 
 export function departureDate(): Date {
   const raw = envText('DEPARTURE_DATE')?.trim()

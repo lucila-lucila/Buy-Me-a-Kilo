@@ -31,16 +31,23 @@ export const copy = {
      * mine, después habrá otra"), que decía lo mismo peor y desde abajo.
      */
     mission: 'my mission is to travel the world and leave my mark wherever I go.',
+
+    /** El destino, en su propio renglón. Los dos países y en ese orden. */
+    next: 'next stop: south korea and japan.',
+  },
+
+  games: {
+    /** El único acceso a los juegos. Chico, debajo del botón. */
+    open: 'or help me pack →',
     /**
-     * La línea operativa va arriba del fold: es la que explica qué se compra.
-     */
-    /**
+     * La única línea de la promesa del sticker que sobrevive fuera de /open.
+     * Vive en el selector de juegos: es lo que la persona recibe a cambio de
+     * pagar, y no puede desaparecer de la página entera.
+     *
      * El espacio entre "You" y "don't" es duro (\u00a0) a propósito: sin él, en
-     * un teléfono angosto el renglón se cortaba justo después de "You" y la
-     * frase quedaba partida por la mitad de la cláusula. Atado así, el único
-     * corte posible cae después del punto, que es donde tiene que caer.
+     * un teléfono angosto el renglón se cortaba justo después de "You".
      */
-    lead: "Fill a kilo, get a sticker. You\u00a0don't get to pick which one.",
+    promise: "fill a kilo, get a sticker. you\u00a0don't get to pick which one.",
   },
 
   suitcase: {
@@ -61,13 +68,13 @@ export const copy = {
 
   countdown: {
     /** El rótulo de arriba. Chico: lo que se lee son los números. */
-    heading: 'until the plane leaves for japan',
+    heading: 'until the plane leaves for korea and japan',
 
     /**
-     * Las etiquetas de las cuatro cajitas. En plural siempre: son rótulos de
+     * Las etiquetas de las tres cajitas. En plural siempre: son rótulos de
      * columna, no una frase, y "1 hours" no se lee como error acá.
      */
-    labels: { days: 'days', hours: 'hours', minutes: 'minutes', seconds: 'seconds' } as const,
+    labels: { days: 'days', hours: 'hours', minutes: 'minutes' } as const,
 
     /** En cero. Punto final: es la única frase de la página que lo lleva. */
     gone: 'the flight left.',
@@ -82,8 +89,10 @@ export const copy = {
     note: `five dollars is ${asWord(gramsForDollars(5))} grams. put in whatever you want.`,
   },
 
-  grid: {
-    heading: 'Twelve of these exist. You get one.',
+  /** Textos alternativos. Descriptivos y en el tono de la página, nunca vacíos. */
+  alt: {
+    kilo: 'Kilo, a small glowing blob with a face, standing in front of the suitcase',
+    suitcase: 'A suitcase filling up with light as people put grams in it',
   },
 
   privacy: {
