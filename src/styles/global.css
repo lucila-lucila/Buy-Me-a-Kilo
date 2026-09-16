@@ -1173,6 +1173,209 @@ img {
   max-width: var(--measure);
 }
 
+/* ------------------------------------------------------------ los juegos -- */
+
+/* El único acceso, debajo del botón. Chico y tenue: no compite con la acción
+   que sí importa, que es el botón de arriba. */
+.games__open {
+  border: 0;
+  /* Apretado arriba y abajo a propósito: en 360x640 el link queda justo en el
+     borde del fold y tres píxeles de padding lo empujaban afuera. */
+  padding: 0.1rem 0.4rem;
+  background: none;
+  font-family: var(--body);
+  font-size: var(--fs-small);
+  color: var(--paper-dim);
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: var(--hairline-strong);
+  text-underline-offset: 0.25em;
+  transition: color 200ms ease;
+}
+
+.games__open:hover,
+.games__open:focus-visible {
+  color: var(--mint);
+  text-decoration-color: var(--mint);
+}
+
+/* Con la capa abierta, lo de atrás se congela. Difuminado y todavía moviéndose
+   se lee como un error. Es animation-play-state y no animation: none para que
+   al cerrar las animaciones sigan desde donde estaban en vez de saltar. */
+.games-open .page *,
+.games-open .glow,
+.games-open .grain {
+  animation-play-state: paused;
+}
+
+/* La capa. Por encima de todo, a pantalla completa.
+
+   El difuminado va como backdrop-filter acá y no como filter sobre la página:
+   un filter sobre .page crearía un contexto de apilado que le aislaría el
+   mix-blend-mode a Kilo y a la valija, y los dos volverían a dibujarse como
+   cuadrados negros justo detrás de un fondo semitransparente que los deja ver. */
+.games {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(1rem, 4vw, 2.5rem);
+  background: rgba(20, 9, 28, 0.82);
+  backdrop-filter: blur(14px) saturate(0.8);
+  -webkit-backdrop-filter: blur(14px) saturate(0.8);
+  animation: games-in 240ms ease-out;
+}
+
+@keyframes games-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.games__body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(1.25rem, 4vw, 2rem);
+  width: min(100%, 720px);
+}
+
+.games__cards {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: clamp(0.75rem, 2.5vw, 1.25rem);
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+@media (min-width: 620px) {
+  .games__cards {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.games__card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  width: 100%;
+  height: 100%;
+  padding: clamp(1.1rem, 3.5vw, 1.75rem);
+  border: 1px solid var(--hairline-strong);
+  border-radius: 18px;
+  background: rgba(255, 246, 236, 0.04);
+  color: var(--paper);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 180ms ease,
+    background 180ms ease,
+    transform 180ms ease;
+}
+
+.games__card:hover:not(:disabled),
+.games__card:focus-visible:not(:disabled) {
+  border-color: var(--mint);
+  background: rgba(123, 240, 200, 0.08);
+  transform: translateY(-2px);
+}
+
+/* Mientras el juego no existe: se ve, se lee y no se puede tocar. */
+.games__card:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.games__name {
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: var(--fs-heading);
+  line-height: 1.1;
+}
+
+.games__line {
+  font-size: var(--fs-small);
+  line-height: 1.35;
+  color: var(--paper-dim);
+}
+
+.games__soon {
+  margin-top: 0.15rem;
+  font-size: var(--fs-micro);
+  letter-spacing: 0.04em;
+  color: var(--paper-faint);
+}
+
+.games__promise {
+  margin: 0;
+  max-width: 44ch;
+  text-align: center;
+  font-size: var(--fs-small);
+  line-height: 1.4;
+  color: var(--paper-dim);
+}
+
+/* La X y el botón de donar viven en las esquinas y no se mueven: la capa puede
+   estar mostrando un juego abajo y los dos siguen ahí, sin taparlo. */
+.games__close {
+  position: absolute;
+  top: clamp(0.75rem, 2.5vw, 1.5rem);
+  right: clamp(0.75rem, 2.5vw, 1.5rem);
+  width: 2.75rem;
+  height: 2.75rem;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  background: rgba(20, 9, 28, 0.6);
+  color: var(--paper-dim);
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    color 180ms ease,
+    border-color 180ms ease;
+}
+
+.games__close:hover,
+.games__close:focus-visible {
+  color: var(--paper);
+  border-color: var(--paper-dim);
+}
+
+/* Chico y sin brillo: acá adentro el botón está para no desaparecer, no para
+   interrumpir. El grande sigue siendo el de la página. */
+.games__support {
+  position: absolute;
+  right: clamp(0.75rem, 2.5vw, 1.5rem);
+  bottom: clamp(0.75rem, 2.5vw, 1.5rem);
+  padding: 0.6rem 1.1rem;
+  border: 1px solid var(--bubblegum);
+  border-radius: 999px;
+  background: rgba(255, 79, 163, 0.16);
+  font-family: var(--display);
+  font-size: var(--fs-small);
+  line-height: 1;
+  text-decoration: none;
+  color: var(--paper);
+  transition:
+    background 180ms ease,
+    transform 180ms ease;
+}
+
+.games__support:hover,
+.games__support:focus-visible {
+  background: rgba(255, 79, 163, 0.3);
+  transform: translateY(-2px);
+}
+
 /* ============================================================================
    SIN MOVIMIENTO — bloque final
 
@@ -1195,6 +1398,7 @@ img {
   .suitcase--overweight .suitcase__shell,
   .suitcase--overweight .spill,
   .scene__kilo,
+  .games,
   .wave,
   .wave-bob,
   .countdown__n,
@@ -1208,7 +1412,16 @@ img {
   .wave-level,
   .wave-calm,
   .goal__fill,
-  .rise {
+  .rise,
+  .games__card,
+  .games__support {
     transition: none;
+  }
+
+  .games__card:hover:not(:disabled),
+  .games__card:focus-visible:not(:disabled),
+  .games__support:hover,
+  .games__support:focus-visible {
+    transform: none;
   }
 }

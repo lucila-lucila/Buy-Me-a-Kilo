@@ -9,9 +9,15 @@
       name="description"
       content="Open the sticker you got for filling a kilo of the suitcase. It lives in your browser and nowhere else."
     />
-    <!-- Canonical sin parámetros: /open?sticker=... es la misma página con un
-         sticker distinto, y sin esto cada variante contaría como contenido
-         duplicado. -->
+    <!-- Fuera del índice. /open no es una página de contenido: es la entrega de
+         algo que se recibe después de pagar. Que esté abierta y sea adivinable
+         es una tolerancia para que nadie quede colgado si cierra la pestaña de
+         Ko-fi, no una invitación; indexarla la convertiría en la puerta de
+         entrada al premio sin pasar por la página. Por eso tampoco está en el
+         sitemap. -->
+    <meta name="robots" content="noindex, follow" />
+    <!-- Canonical sin parámetros igual: /open?sticker=... es la misma página con
+         un sticker distinto. -->
     <link rel="canonical" href="https://buymeakilo.com/open" />
     <link rel="icon" href="/favicon.png" type="image/png" sizes="32x32" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />

@@ -48,6 +48,13 @@ export const copy = {
      * un teléfono angosto el renglón se cortaba justo después de "You".
      */
     promise: "fill a kilo, get a sticker. you\u00a0don't get to pick which one.",
+
+    /** El nombre de la capa para un lector de pantalla. No se ve. */
+    label: 'games',
+    /** La X de arriba a la derecha. */
+    close: 'close',
+    /** Mientras el juego todavía no existe. Dice la verdad y no promete nada. */
+    notYet: 'not here yet',
   },
 
   suitcase: {

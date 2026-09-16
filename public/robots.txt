@@ -1,5 +1,6 @@
-# Todo abierto. No hay nada acá que esconder de un buscador: no hay cuentas, no
-# hay datos de nadie y /open entrega un sticker al azar a quien entre.
+# Todo abierto para el rastreo. La única página que no queremos en el índice es
+# /open, y eso lo dice ella misma con un noindex: bloquearla acá impediría que
+# el robot lo lea, que es justo lo contrario de lo que queremos.
 User-agent: *
 Allow: /
 

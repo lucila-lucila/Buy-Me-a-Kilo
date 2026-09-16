@@ -7,6 +7,7 @@ import { KiloCounter } from './components/KiloCounter'
 import { SuitcaseBar } from './components/SuitcaseBar'
 import { Countdown } from './components/Countdown'
 import { SupportButton } from './components/SupportButton'
+import { GamesEntry } from './components/games/GamesEntry'
 import { Footer } from './components/Footer'
 import { Grain } from './components/Grain'
 import { Glow } from './components/Glow'
@@ -75,6 +76,9 @@ export default function App() {
 
           {/* El botón, con la línea de los gramos pegada abajo. */}
           <SupportButton />
+
+          {/* El único acceso a los juegos. Discreto, debajo del botón. */}
+          <GamesEntry />
         </section>
 
         {/* Lo de abajo entra al scrollear, escalonado. El hero no: está a la
