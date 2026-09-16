@@ -1,5 +1,6 @@
 import { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react'
 import { copy } from '../../copy'
+import { HAY_JUEGOS } from '../../config/games'
 
 /**
  * El código de la capa —y con él, el de los dos juegos— se carga recién cuando
@@ -41,6 +42,12 @@ export function GamesEntry() {
       document.body.classList.remove('games-open')
     }
   }, [open])
+
+  // Sin ningún juego terminado no hay link: una capa con dos tarjetas que dicen
+  // "not here yet" deja al que hizo clic peor que antes de hacerlo. Va después
+  // de los hooks —HAY_JUEGOS es una constante de módulo, así que el orden de
+  // hooks no cambia nunca entre renders.
+  if (!HAY_JUEGOS) return null
 
   return (
     <>

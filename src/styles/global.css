@@ -1322,6 +1322,131 @@ img {
   color: var(--paper-dim);
 }
 
+/* ---- el juego y el resultado ---- */
+
+.pack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  /* La capa tiene la X arriba y el botón abajo a la derecha: el juego se queda
+     con lo del medio y no se mete debajo de ninguno de los dos. */
+  height: min(76svh, 640px);
+}
+
+.pack__score {
+  margin: 0;
+  font-family: var(--display);
+  font-size: var(--fs-heading);
+  line-height: 1;
+  color: var(--paper);
+}
+
+.pack__canvas {
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  /* Sin esto, arrastrar en el teléfono scrollea la página en vez de mover la
+     pieza. */
+  touch-action: none;
+  border-radius: 14px;
+}
+
+.pack__canvas:focus-visible {
+  outline: 3px solid var(--mint);
+  outline-offset: 3px;
+}
+
+.pack__help {
+  margin: 0;
+  font-size: var(--fs-micro);
+  color: var(--paper-faint);
+  text-align: center;
+}
+
+.games__result {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  text-align: center;
+}
+
+.games__resultScore {
+  margin: 0;
+  font-family: var(--display);
+  font-size: var(--fs-title);
+  line-height: 1.15;
+  color: var(--paper);
+}
+
+/* La segunda línea, la que dice la verdad, más callada que el número. */
+.games__resultFake {
+  font-size: 0.62em;
+  color: var(--paper-dim);
+}
+
+.games__best {
+  margin: 0;
+  font-size: var(--fs-small);
+  color: var(--paper-faint);
+}
+
+/* El botón grande del resultado: mismo color y misma forma que el de la
+   página, que no se toca. */
+.games__cta {
+  margin-top: 0.5rem;
+  display: block;
+  width: min(100%, 18rem);
+  padding: 0.8rem 1.5rem;
+  border-radius: 999px;
+  border: 1px solid var(--bubblegum);
+  background: linear-gradient(rgba(255, 79, 163, 0.2), rgba(255, 79, 163, 0.07));
+  box-shadow: 0 0 32px rgba(255, 79, 163, 0.28);
+  font-family: var(--display);
+  font-size: var(--fs-heading);
+  line-height: 1.1;
+  text-align: center;
+  text-decoration: none;
+  color: var(--paper);
+  transition:
+    background 180ms ease,
+    transform 180ms ease;
+}
+
+.games__cta:hover,
+.games__cta:focus-visible {
+  background: linear-gradient(rgba(255, 79, 163, 0.34), rgba(255, 79, 163, 0.14));
+  transform: translateY(-2px);
+}
+
+.games__note {
+  margin: 0;
+  font-size: var(--fs-micro);
+  color: var(--paper-faint);
+}
+
+.games__again {
+  margin-top: 0.4rem;
+  border: 0;
+  padding: 0.3rem 0.5rem;
+  background: none;
+  font-family: var(--body);
+  font-size: var(--fs-small);
+  color: var(--paper-dim);
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: var(--hairline-strong);
+  text-underline-offset: 0.25em;
+}
+
+.games__again:hover,
+.games__again:focus-visible {
+  color: var(--mint);
+  text-decoration-color: var(--mint);
+}
+
 /* La X y el botón de donar viven en las esquinas y no se mueven: la capa puede
    estar mostrando un juego abajo y los dos siguen ahí, sin taparlo. */
 .games__close {
@@ -1414,14 +1539,17 @@ img {
   .goal__fill,
   .rise,
   .games__card,
-  .games__support {
+  .games__support,
+  .games__cta {
     transition: none;
   }
 
   .games__card:hover:not(:disabled),
   .games__card:focus-visible:not(:disabled),
   .games__support:hover,
-  .games__support:focus-visible {
+  .games__support:focus-visible,
+  .games__cta:hover,
+  .games__cta:focus-visible {
     transform: none;
   }
 }

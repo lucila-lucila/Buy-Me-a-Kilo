@@ -23,7 +23,7 @@ export const GAMES: Game[] = [
     id: 'pack',
     name: 'Pack',
     line: 'stack what falls into the suitcase before the pile tips over.',
-    ready: false,
+    ready: true,
   },
   {
     id: 'layover',
@@ -32,3 +32,11 @@ export const GAMES: Game[] = [
     ready: false,
   },
 ]
+
+/**
+ * Si hay al menos un juego de verdad. Mientras sea false, el link "or help me
+ * pack" no se dibuja: una capa que se abre y muestra dos tarjetas que dicen
+ * "not here yet" deja al que hizo clic peor que antes de hacerlo. Es derivado y
+ * no un flag aparte, así que se enciende solo cuando el primer juego existe.
+ */
+export const HAY_JUEGOS = GAMES.some((g) => g.ready)

@@ -55,6 +55,24 @@ export const copy = {
     close: 'close',
     /** Mientras el juego todavía no existe. Dice la verdad y no promete nada. */
     notYet: 'not here yet',
+
+    /** Los gramos de la partida en curso. */
+    packed: (g: number) => `${g.toLocaleString('en-US')} grams`,
+    /** Cómo se juega, en un renglón. Es también el nombre del canvas. */
+    packHelp: 'drag or use the arrows. drop it in the suitcase.',
+
+    /**
+     * El resultado. Dice la verdad de una manera que empuja a donar sin mentir:
+     * el número es real, y lo que no es real son los gramos.
+     */
+    result: {
+      packed: (g: number) => `you packed ${g.toLocaleString('en-US')} grams.`,
+      fake: 'none of them were real.',
+      best: (g: number) => `your best: ${g.toLocaleString('en-US')} grams`,
+      again: 'play again',
+      /** Debajo del botón de donar, en el resultado. */
+      note: 'five dollars is three grams. those ones count.',
+    },
   },
 
   suitcase: {
