@@ -1,0 +1,6 @@
+# Todo abierto. No hay nada acá que esconder de un buscador: no hay cuentas, no
+# hay datos de nadie y /open entrega un sticker al azar a quien entre.
+User-agent: *
+Allow: /
+
+Sitemap: https://buymeakilo.com/sitemap.xml

@@ -3,7 +3,7 @@
   "rewrites": [{ "source": "/open", "destination": "/open.html" }],
   "headers": [
     {
-      "source": "/(stickers|bag|suitcase|fonts|share)/(.*)",
+      "source": "/(stickers|bag|suitcase|fonts|hero)/(.*)",
       "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
     }
   ]

@@ -4,35 +4,42 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="theme-color" content="#14091C" />
-    <title>Buy Me a Kilo</title>
+
+    <title>Buy Me a Kilo — help fill a suitcase for Korea and Japan</title>
+    <!-- 150 caracteres, en el mismo tono seco de la página. Entran las ocho
+         palabras que queremos trabajar: suitcase, baggage allowance, kilo,
+         Korea, Japan, travel fund, sticker, anonymous. -->
     <meta
       name="description"
-      content="There is one suitcase. Fill a kilo, get a sticker. You don't get to pick which one."
+      content="One suitcase, 23 kilos of baggage allowance, bound for South Korea and Japan. Put grams into the travel fund and get a sticker. Anonymous, no account."
     />
+    <link rel="canonical" href="https://buymeakilo.com" />
 
     <!-- Absolutas y no relativas: Twitter, WhatsApp y Facebook descartan una
-         og:image con path relativo, y la tarjeta sale sin imagen. Es texto
+         og:image con path relativo y la tarjeta sale sin imagen. Es texto
          estático en el head, así que el dominio va escrito. -->
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://buymeakilo.com/" />
-    <meta property="og:title" content="Buy Me a Kilo" />
+    <meta property="og:site_name" content="Buy Me a Kilo" />
+    <meta property="og:url" content="https://buymeakilo.com" />
+    <meta property="og:title" content="Buy Me a Kilo — help fill a suitcase for Korea and Japan" />
     <meta
       property="og:description"
-      content="I have 23 kilos. Most of them are empty. Fill a kilo, get a sticker."
+      content="One suitcase, 23 kilos of baggage allowance, bound for South Korea and Japan. Put grams into the travel fund and get a sticker. Anonymous, no account."
     />
-    <meta property="og:image" content="https://buymeakilo.com/share/og.png" />
+    <meta property="og:image" content="https://buymeakilo.com/og.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="One suitcase. Fill a kilo, get a sticker." />
+    <meta property="og:image:alt" content="Kilo standing in front of a suitcase that is filling up with light." />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:image" content="https://buymeakilo.com/share/og.png" />
+    <meta name="twitter:image" content="https://buymeakilo.com/og.png" />
 
-    <link rel="icon" href="/stickers/webp/sticker_11.webp" type="image/webp" />
+    <link rel="icon" href="/favicon.png" type="image/png" sizes="32x32" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 
-    <!-- El hero tiene que estar pintado en menos de 2s en 4G. -->
+    <!-- El hero tiene que estar pintado en menos de 2s en 4G. Kilo es lo más
+         grande de la primera pantalla y lo que tarda en pintar. -->
     <link rel="preload" href="/fonts/bagel-fat-one.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/fonts/familjen-grotesk.woff2" as="font" type="font/woff2" crossorigin />
-    <!-- Kilo es lo más grande de la primera pantalla y lo que tarda en pintar. -->
     <link rel="preload" href="/hero/kilo.webp" as="image" type="image/webp" />
     <link rel="preload" href="/suitcase/hero_suitcase.webp" as="image" type="image/webp" />
     <style>
