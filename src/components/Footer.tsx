@@ -1,6 +1,6 @@
 import { copy } from '../copy'
 
-/** El pie, en un renglón. El link es la salida de emergencia al sticker. */
+/** El pie: un renglón con el link, y la firma debajo. */
 export function Footer() {
   return (
     <footer className="footer">
@@ -11,6 +11,7 @@ export function Footer() {
       <a className="footer__open" href="/open">
         {copy.footer.openLink}
       </a>
+      <div className="footer__signature">{copy.footer.signature}</div>
     </footer>
   )
 }

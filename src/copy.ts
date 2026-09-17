@@ -134,6 +134,11 @@ export const copy = {
      * propia /open lo dice en voz alta.
      */
     openLink: 'already paid? open your sticker',
+    /**
+     * La segunda línea del pie. Es lo único de la página que suena a persona,
+     * y por eso se queda aunque sea un renglón más.
+     */
+    signature: 'made by hand, in the dark, at an hour that was not reasonable.',
   },
 
   open: {
