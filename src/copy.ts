@@ -52,7 +52,7 @@ export const copy = {
     tapToPlay: 'tap to play',
 
     /** Los gramos de la partida en curso, arriba a la izquierda del canvas. */
-    packed: (g: number) => `${g.toLocaleString('en-US')} grams`,
+    packed: (g: number) => `${g.toLocaleString('en-US')} g this flight`,
 
     /**
      * El resultado. Dice la verdad de una manera que empuja a donar sin mentir:
@@ -102,6 +102,15 @@ export const copy = {
      * escritos a mano: si cambia la constante, la frase se corrige sola.
      */
     note: `five dollars is ${asWord(gramsForDollars(5))} grams. put in whatever you want.`,
+    /**
+     * La única línea que dice qué se recibe a cambio de pagar. Va siempre, en
+     * el botón y no en el resultado de la partida: la necesita también quien
+     * llega y no juega. Sin ella la página pide plata y no nombra el sticker.
+     *
+     * El espacio entre "you" y "don't" es duro (\u00a0) a propósito: sin él, en
+     * un teléfono angosto el renglón se cortaba justo después de "you".
+     */
+    promise: "fill a kilo, get a sticker. you\u00a0don't get to pick which one.",
   },
 
   /** Textos alternativos. Descriptivos y en el tono de la página, nunca vacíos. */

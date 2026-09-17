@@ -1201,11 +1201,10 @@ img {
   position: relative;
   width: 100%;
   height: clamp(200px, 52svh, 470px);
-  border-radius: 18px;
-  border: 1px solid var(--hairline);
-  /* clip y no hidden: recorta sin crear un contenedor de scroll. */
+  /* Sin marco y sin fondo propio: el canvas es transparente y lo que se ve
+     detrás es la página misma, con su resplandor. Con borde y fondo se leía
+     como un iframe pegado encima. */
   overflow: clip;
-  background: #14091c;
 }
 
 .game__world {
