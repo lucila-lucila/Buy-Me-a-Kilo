@@ -1350,17 +1350,39 @@ img {
   width: auto;
 }
 
-/* El ícono: el trazo en el tono apagado del texto, el relleno en menta como la
-   barra. Sin glow y sin animación propia: la única transición es la del
-   relleno, la misma que la de la barra, para que suban juntos. */
-.suitcase-icon {
+/* La valija chiquita. Sin fondo propio ni transform en el contenedor: la
+   carcasa va con mix-blend-mode: screen y cualquier contexto de apilado acá la
+   devolvería a ser un cuadrado negro. El backdrop es la página, que es opaca.
+
+   Las dos capas se pasan del cuadro un 36%, igual que en el hero: la
+   ilustración no llena su archivo, y así el dibujo ocupa la caja entera. */
+.suitcase-mini {
+  position: relative;
   flex: 0 0 auto;
-  display: block;
-  color: var(--paper-faint);
+  width: 2.6rem;
+  aspect-ratio: 1;
+  /* La capa transparente que se pasa del cuadro no puede comerse los clics ni
+     salirse de la fila. */
+  overflow: clip;
 }
 
-.suitcase-icon__fill {
-  fill: var(--mint);
+.suitcase-mini__fill,
+.suitcase-mini__shell {
+  position: absolute;
+  inset: -18%;
+  width: 136%;
+  height: 136%;
+  max-width: none;
+  pointer-events: none;
+}
+
+.suitcase-mini__shell {
+  z-index: 1;
+}
+
+/* El nivel sube con la misma transición que la barra: los dos leen el mismo
+   número y tienen que moverse juntos. Ninguna otra animación. */
+.suitcase-mini__level {
   transition:
     y 900ms cubic-bezier(0.2, 0.9, 0.2, 1),
     height 900ms cubic-bezier(0.2, 0.9, 0.2, 1);
@@ -1488,7 +1510,7 @@ img {
   .goal__fill,
   .rise,
   .play__again,
-  .suitcase-icon__fill {
+  .suitcase-mini__level {
     transition: none;
   }
 }

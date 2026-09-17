@@ -1,38 +1,68 @@
+import { useId } from 'react'
+
 /**
- * Una valijita que se llena, al lado de la barra.
+ * La valija de siempre, chiquita, al lado de la barra.
  *
- * Es un ícono, no la ilustración de antes: sin glow, sin onda, sin respirar.
- * Lo que la barra dice en abstracto, esto lo dice de un vistazo. Lee el mismo
- * `percentFull` que la barra y sube con la misma transición, así las dos se
- * mueven juntas: si alguna vez el dibujo y el número no coinciden, es un bug.
+ * Es la misma ilustración que estaba en el hero —hero_suitcase.webp, con la
+ * carcasa en mix-blend-mode: screen y el relleno debajo, recortado a la
+ * cavidad— escalada a un ícono. Lo que la barra dice en abstracto, esto lo
+ * dice de un vistazo.
  *
- * El relleno es un rectángulo recortado por la forma del cuerpo, que crece
- * desde abajo. Pasado el 100% se queda lleno.
+ * Sin onda, sin glow, sin respirar y sin derrame: el relleno es un rectángulo
+ * plano que sube, con la misma transición que la barra para que los dos se
+ * muevan juntos. Lee el mismo `percentFull`: si alguna vez el dibujo y el
+ * número no coinciden, es un bug. Pasado el 100% se queda llena.
+ *
+ * Las medidas de la cavidad son las de Suitcase.tsx, tomadas del archivo.
  */
+const CAVITY = { x: 246, y: 338, w: 536, h: 418, r: 62 }
+
 export function SuitcaseIcon({ percent }: { percent: number }) {
-  const nivel = Math.min(100, Math.max(0, percent))
-  // El cuerpo va de y=7 a y=21 (14 de alto). El relleno sube desde 21.
-  const alto = (14 * nivel) / 100
+  const uid = useId().replace(/:/g, '')
+  const ratio = Math.min(1, Math.max(0, percent / 100))
+  const alto = CAVITY.h * ratio
+
   return (
-    <svg className="suitcase-icon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false">
-      <defs>
-        <clipPath id="suitcase-icon-body">
-          <rect x="3" y="7" width="18" height="14" rx="2.5" />
-        </clipPath>
-      </defs>
-      {/* La manija. */}
-      <rect x="8.5" y="3.5" width="7" height="4" rx="1.5" fill="none" stroke="currentColor" strokeWidth="1.5" />
-      {/* Lo que hay adentro. */}
-      <rect
-        className="suitcase-icon__fill"
-        x="3"
-        y={21 - alto}
-        width="18"
-        height={alto}
-        clipPath="url(#suitcase-icon-body)"
+    <div className="suitcase-mini" aria-hidden="true">
+      <svg className="suitcase-mini__fill" viewBox="0 0 1024 1024">
+        <defs>
+          <clipPath id={`mini-cavity-${uid}`}>
+            <rect x={CAVITY.x} y={CAVITY.y} width={CAVITY.w} height={CAVITY.h} rx={CAVITY.r} />
+          </clipPath>
+          {/* Los mismos colores del líquido de la ilustración grande. */}
+          <linearGradient
+            id={`mini-liquid-${uid}`}
+            gradientUnits="userSpaceOnUse"
+            x1={CAVITY.x}
+            y1={CAVITY.y + CAVITY.h}
+            x2={CAVITY.x + CAVITY.w}
+            y2={CAVITY.y}
+          >
+            <stop offset="0" style={{ stopColor: 'var(--bubblegum)' }} />
+            <stop offset="0.36" style={{ stopColor: 'var(--electric)' }} />
+            <stop offset="0.7" style={{ stopColor: 'var(--mint)' }} />
+            <stop offset="1" style={{ stopColor: 'var(--sherbet)' }} />
+          </linearGradient>
+        </defs>
+        <g clipPath={`url(#mini-cavity-${uid})`}>
+          <rect
+            className="suitcase-mini__level"
+            x={CAVITY.x}
+            y={CAVITY.y + CAVITY.h - alto}
+            width={CAVITY.w}
+            height={alto}
+            fill={`url(#mini-liquid-${uid})`}
+          />
+        </g>
+      </svg>
+      <img
+        className="suitcase-mini__shell blend-screen"
+        src="/suitcase/hero_suitcase.webp"
+        alt=""
+        width={1024}
+        height={1024}
+        decoding="async"
       />
-      {/* El cuerpo, encima del relleno para que el borde quede limpio. */}
-      <rect x="3" y="7" width="18" height="14" rx="2.5" fill="none" stroke="currentColor" strokeWidth="1.5" />
-    </svg>
+    </div>
   )
 }
