@@ -19,10 +19,10 @@ export function SuitcaseBar({ percent }: { percent: number }) {
         aria-valuemax={100}
         aria-label={`${percent.toFixed(1)}% full`}
       >
-        <div
-          className="goal__fill"
-          style={{ width: `${Math.min(100, Math.max(percent, percent > 0 ? 1.5 : 0))}%` }}
-        />
+        {/* Sin piso mínimo: al 0,3% la barra mide 0,3%. Un piso haría que el
+            dibujo dijera algo distinto del número, y una valija casi vacía al
+            principio es un argumento, no un problema. */}
+        <div className="goal__fill" style={{ width: `${Math.min(100, Math.max(0, percent))}%` }} />
       </div>
     </div>
   )
