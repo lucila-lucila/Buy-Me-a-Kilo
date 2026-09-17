@@ -11,8 +11,8 @@ import { Glow } from './components/Glow'
 /**
  * Una sola columna centrada.
  *
- *   título · misión · destino · el juego · el botón
- *   la valija chica · cuenta regresiva · privacidad · pie
+ *   título · misión · el juego · el botón
+ *   la valija chica y la cuenta regresiva · privacidad · pie
  *
  * El juego ya no está escondido detrás de un link: es la pantalla. Kilo dejó de
  * ser la decoración del contador y pasó a ser el personaje que se vuela, y la
@@ -41,30 +41,23 @@ export default function App() {
         <section className="hero">
           <h1 className="hero__title">{copy.hero.title}</h1>
 
-          <p className="hero__mission">
-            {copy.hero.mission}
-            <br />
-            {copy.hero.next}
-          </p>
+          <p className="hero__mission">{copy.hero.mission}</p>
 
           <Play />
         </section>
 
-        <Meter data={data} stale={stale} />
-
-        <Countdown clock={clock} />
+        {/* Las métricas y la cuenta regresiva en un solo bloque: en desktop una
+            fila, la barra a la izquierda y la cuenta a la derecha; en un
+            teléfono se apilan. */}
+        <div className="stats">
+          <Meter data={data} stale={stale} />
+          <Countdown clock={clock} />
+        </div>
 
         {/* Lo de abajo entra al scrollear, escalonado. El hero no: está a la
             vista de entrada y aparecer con retraso lo haría ver roto. */}
         <Rise>
-          <p className="privacy">
-            {copy.privacy.lines.map((line, i) => (
-              <span key={line}>
-                {line}
-                {i === 0 && <br />}
-              </span>
-            ))}
-          </p>
+          <p className="privacy">{copy.privacy.line}</p>
         </Rise>
 
         <Rise delay={120}>

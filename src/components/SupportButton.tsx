@@ -14,11 +14,7 @@ export function SupportButton({ note }: { note?: string }) {
       <a className="support__button" href={KOFI_URL} target="_blank" rel="noopener noreferrer">
         {copy.support.cta}
       </a>
-      <p className="support__note">
-        {note ?? copy.support.note}
-        <br />
-        {copy.support.promise}
-      </p>
+      <p className="support__note">{note ?? copy.support.note}</p>
     </div>
   )
 }

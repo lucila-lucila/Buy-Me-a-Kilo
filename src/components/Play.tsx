@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react'
 import { copy } from '../copy'
-import { remember } from '../lib/records'
+import { bestOf, remember } from '../lib/records'
 import { Layover } from './games/layover/Layover'
 import { SupportButton } from './SupportButton'
 
@@ -32,12 +32,16 @@ export function Play() {
   // afuera: todo lo que el juego sabe vive adentro de su efecto.
   const [ronda, setRonda] = useState(0)
   const [resultado, setResultado] = useState<{ grams: number; best: number } | null>(null)
+  // El récord se lee una vez al montar y se actualiza al terminar cada partida.
+  const [best, setBest] = useState(() => bestOf(JUEGO))
 
   const terminar = useCallback((grams: number) => {
     // El récord es lo único que se guarda, y vive en el localStorage de cada
     // persona. Sin cuenta, sin servidor y sin tabla: el único número contra el
     // que se juega es el propio.
-    setResultado({ grams, best: remember(JUEGO, grams) })
+    const nuevo = remember(JUEGO, grams)
+    setBest(nuevo)
+    setResultado({ grams, best: nuevo })
   }, [])
 
   const otraVez = useCallback(() => {
@@ -48,7 +52,7 @@ export function Play() {
   return (
     <div className="play">
       <div className="play__stage">
-        <Layover key={ronda} onEnd={terminar} />
+        <Layover key={ronda} onEnd={terminar} best={best} />
 
         {/* El resultado se dibuja encima del último cuadro, que queda
             congelado: una partida que termina en una pantalla vacía se lee
@@ -69,8 +73,6 @@ export function Play() {
           </div>
         )}
       </div>
-
-      <p className="play__help">{copy.game.help}</p>
 
       {/* Lo único que cambia del botón al terminar una partida es la línea de
           abajo: los gramos que acaba de juntar no eran reales y los que se

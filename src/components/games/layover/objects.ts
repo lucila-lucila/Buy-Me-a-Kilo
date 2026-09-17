@@ -25,9 +25,8 @@ export const MENTA: [number, number, number] = [123, 240, 200]
 
 const CHICO = { tamaño: 0.72, gramos: 5 }
 const MEDIANO = { tamaño: 0.95, gramos: 12 }
-const GRANDE = { tamaño: 1.25, gramos: 25 }
 
-/** Los ocho, con su tamaño. El pasaporte es el único grande. */
+/** Los siete que salen de la bolsa. El pasaporte no: ese va aparte. */
 const CATALOGO: { id: string; clase: typeof CHICO }[] = [
   { id: 'sticker_03', clase: CHICO }, // media
   { id: 'sticker_04', clase: CHICO }, // nube
@@ -36,19 +35,24 @@ const CATALOGO: { id: string; clase: typeof CHICO }[] = [
   { id: 'sticker_08', clase: MEDIANO }, // mate
   { id: 'sticker_02', clase: MEDIANO }, // medusa
   { id: 'sticker_01', clase: MEDIANO }, // conejo
-  { id: 'sticker_10', clase: GRANDE }, // pasaporte
 ]
 
 /**
- * La bolsa de la que sale cada objeto. Los chicos van tres veces, los medianos
- * dos y el grande una: es lo que hace que los chicos aparezcan más seguido.
+ * El pasaporte vale el riesgo. No sale de la bolsa: aparece cada tanto, en
+ * un lugar difícil —pegado a algo que se esquiva, o arriba de todo— para que
+ * ir a buscarlo sea una decisión y no suerte.
  */
-export const BUENOS: Bueno[] = CATALOGO.flatMap(({ id, clase }) => {
-  const veces = clase === CHICO ? 3 : clase === MEDIANO ? 2 : 1
-  return Array.from({ length: veces }, () => ({ sprite: webpSrc(id), ...clase }))
-})
+export const PASAPORTE: Bueno = { sprite: webpSrc('sticker_10'), tamaño: 1.3, gramos: 40 }
 
-export const SPRITES_BUENOS = [...new Set(BUENOS.map((b) => b.sprite))]
+/**
+ * La bolsa de la que sale cada objeto. Los chicos van tres veces y los
+ * medianos dos: es lo que hace que los chicos aparezcan más seguido.
+ */
+export const BUENOS: Bueno[] = CATALOGO.flatMap(({ id, clase }) =>
+  Array.from({ length: clase === CHICO ? 3 : 2 }, () => ({ sprite: webpSrc(id), ...clase })),
+)
+
+export const SPRITES_BUENOS = [...new Set([...BUENOS, PASAPORTE].map((b) => b.sprite))]
 
 /** Uno al azar. Sin rachas ni pity: es un juego, no un casino. */
 export const sacar = (): Bueno => BUENOS[Math.floor(Math.random() * BUENOS.length)]

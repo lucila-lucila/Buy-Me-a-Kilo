@@ -13,7 +13,7 @@ import {
   type Pais,
   type Pieza,
 } from './landscape'
-import { MALOS, MENTA, SPRITES_BUENOS, dibujarMalo, sacar, type Malo } from './objects'
+import { MALOS, MENTA, PASAPORTE, SPRITES_BUENOS, dibujarMalo, sacar, type Malo } from './objects'
 import { cargar, halo, listo } from './sprites'
 
 /** La partida entera, en segundos. A la mitad se cambia de país. */
@@ -39,8 +39,16 @@ const GRAVEDAD = 2.6
 const EMPUJE = -3.3
 /** Altos de pantalla por segundo. Ni se desploma ni se dispara. */
 const V_MAX = 1.2
-/** Segundos entre que una cosa entra por el borde y llega a Kilo. */
-const AVISO = { korea: 1.9, japan: 1.45 }
+/**
+ * Segundos entre que una cosa entra por el borde y llega a Kilo, al arrancar
+ * y al final. La partida arranca tranquila y se va acelerando: una partida
+ * buena tiene que sentirse ganada.
+ */
+const AVISO = { inicio: 2.1, final: 1.2 }
+/** Segundos entre peligros, al arrancar y al final, antes del azar. */
+const CADA = { inicio: 2.0, final: 1.0 }
+/** Cada cuánto se ofrece un pasaporte, en segundos. */
+const PASAPORTE_CADA = { inicio: 6, final: 9 }
 /** El salto del primer toque, en altos de pantalla por segundo. */
 const SALTO = -0.5
 /** Segundos que tarda la gravedad en llegar a su valor después de arrancar. */
@@ -118,7 +126,14 @@ interface Destello {
  * cada treinta: si el padre le cambiara la identidad de `onEnd`, el efecto se
  * volvería a montar y la partida se reiniciaría sola en medio del vuelo.
  */
-export const Layover = memo(function Layover({ onEnd }: { onEnd: (grams: number) => void }) {
+export const Layover = memo(function Layover({
+  onEnd,
+  best,
+}: {
+  onEnd: (grams: number) => void
+  /** El récord guardado. Se muestra durante la partida, no solo al final. */
+  best: number
+}) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [grams, setGrams] = useState(0)
   const [esperando, setEsperando] = useState(true)
@@ -177,7 +192,10 @@ export const Layover = memo(function Layover({ onEnd }: { onEnd: (grams: number)
 
     /** El país del reloj: el que le toca a lo que entra ahora. */
     const paisReloj = (): Pais => (transcurrido < CAMBIO ? 'korea' : 'japan')
-    const velocidad = () => ((ancho * (1 - KILO_X)) / AVISO[paisReloj()]) * freno
+    /** Cuánto de la partida pasó, de 0 a 1. Todo lo que aprieta sale de acá. */
+    const progreso = () => Math.min(1, transcurrido / DURACION)
+    const rampa = (de: { inicio: number; final: number }) => de.inicio + (de.final - de.inicio) * progreso()
+    const velocidad = () => ((ancho * (1 - KILO_X)) / rampa(AVISO)) * freno
     /** El paisaje se repite cada tanto: un ciclo un poco más ancho que la vista. */
     const ciclo = () => ancho * 2.2
 
@@ -264,6 +282,7 @@ export const Layover = memo(function Layover({ onEnd }: { onEnd: (grams: number)
     // ------------------------------------------------------------ generadores
     let proximoBueno = 0.5
     let proximoMalo = 2
+    let proximoPasaporte = PASAPORTE_CADA.inicio
     /**
      * Por dónde se pasa. No se sortea dónde va lo que se esquiva: se sortea por
      * dónde se pasa y lo que se esquiva se pone al lado.
@@ -309,9 +328,10 @@ export const Layover = memo(function Layover({ onEnd }: { onEnd: (grams: number)
       }
 
       if (proximoMalo <= 0) {
-        // Más seguido después del cambio de país, y de a dos: ahí aprieta.
+        // Cada vez más seguido, y de a dos después del cambio de país: ahí
+        // aprieta.
         const japon = paisReloj() === 'japan'
-        const intervalo = (japon ? 1.2 : 1.7) + Math.random() * 0.7
+        const intervalo = rampa(CADA) + Math.random() * 0.6
         proximoMalo = intervalo
         const r = kiloR * (0.95 + Math.random() * 0.35)
         // Lo que Kilo alcanza a recorrer de un peligro al siguiente, tomado por
@@ -329,11 +349,30 @@ export const Layover = memo(function Layover({ onEnd }: { onEnd: (grams: number)
           if (arribaCabe && (!abajoCabe || Math.random() < 0.5)) lados.push(nuevo - aire - r)
           else if (abajoCabe) lados.push(nuevo + aire + r)
         }
+        const x = ancho + r + 20
+        let puesto: Peligro | null = null
         for (const y of lados) {
           if (pisaBueno(y, r)) continue
-          malos.push({ x: ancho + r + 20, y, r, tipo: MALOS[Math.floor(Math.random() * MALOS.length)] })
+          puesto = { x, y, r, tipo: MALOS[Math.floor(Math.random() * MALOS.length)] }
+          malos.push(puesto)
         }
         paso = nuevo
+
+        // El pasaporte, cada tanto, del otro lado del peligro: para agarrarlo
+        // hay que salir del paso y rodearlo. Si no hay peligro puesto, va
+        // arriba de todo, pegado al techo.
+        proximoPasaporte -= intervalo
+        if (proximoPasaporte <= 0) {
+          proximoPasaporte = rampa(PASAPORTE_CADA) + Math.random() * 2
+          const rp = PASAPORTE.tamaño * kiloR
+          let y = rp * 1.2
+          if (puesto !== null) {
+            const arriba = puesto.y < nuevo
+            y = arriba ? puesto.y - puesto.r - rp - kiloR * 0.6 : puesto.y + puesto.r + rp + kiloR * 0.6
+            if (y < rp * 1.1 || y > alto - rp * 1.1) y = rp * 1.2
+          }
+          buenos.push({ x: x + (puesto === null ? 0 : puesto.r * 0.3), y, r: rp, gramos: PASAPORTE.gramos, sprite: PASAPORTE.sprite })
+        }
       }
     }
 
@@ -674,6 +713,11 @@ export const Layover = memo(function Layover({ onEnd }: { onEnd: (grams: number)
       <p className="game__score" aria-live="polite">
         {copy.game.packed(grams)}
       </p>
+      {/* El récord a la vista mientras se juega, y si se lo pasa, el número que
+          se ve es el de ahora: es lo que hace que alguien vuelva a jugar. */}
+      {Math.max(best, grams) > 0 && (
+        <p className="game__best">{copy.game.best(Math.max(best, grams))}</p>
+      )}
       {esperando && <p className="game__start">{copy.game.tapToPlay}</p>}
     </div>
   )

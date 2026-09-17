@@ -30,16 +30,14 @@ export const copy = {
      * Reemplaza al cierre que estaba al final ("there is one suitcase, it's
      * mine, después habrá otra"), que decía lo mismo peor y desde abajo.
      */
-    mission: 'my mission is to travel the world and leave my mark wherever I go.',
-
-    /** El destino, en su propio renglón. Los dos países y en ese orden. */
-    next: 'next stop: south korea and japan.',
+    mission: 'my mission is to leave my mark everywhere I go. next stop: south korea and japan.',
   },
 
   game: {
     /**
-     * Cómo se juega, en un renglón, debajo del canvas. Es también el nombre
-     * accesible del canvas, así que tiene que decir la acción y no el adorno.
+     * El nombre accesible del canvas. No se ve: el juego se explica solo y el
+     * canvas ya dice "tap to play". Un lector de pantalla necesita igual saber
+     * qué es esto.
      */
     help: 'tap to fly. collect what fits. avoid the fees.',
 
@@ -53,6 +51,11 @@ export const copy = {
 
     /** Los gramos de la partida en curso, arriba a la izquierda del canvas. */
     packed: (g: number) => `${g.toLocaleString('en-US')} g this flight`,
+    /**
+     * El récord, arriba a la derecha, durante la partida y no solo al final.
+     * Es lo que hace que alguien vuelva a jugar.
+     */
+    best: (g: number) => `best: ${g.toLocaleString('en-US')} g`,
 
     /**
      * El resultado. Dice la verdad de una manera que empuja a donar sin mentir:
@@ -101,16 +104,13 @@ export const copy = {
      * El precio ahora se dice. Los gramos salen de GRAMS_PER_DOLLAR, no están
      * escritos a mano: si cambia la constante, la frase se corrige sola.
      */
-    note: `five dollars is ${asWord(gramsForDollars(5))} grams. put in whatever you want.`,
     /**
-     * La única línea que dice qué se recibe a cambio de pagar. Va siempre, en
-     * el botón y no en el resultado de la partida: la necesita también quien
-     * llega y no juega. Sin ella la página pide plata y no nombra el sticker.
-     *
-     * El espacio entre "you" y "don't" es duro (\u00a0) a propósito: sin él, en
-     * un teléfono angosto el renglón se cortaba justo después de "you".
+     * El precio y la promesa en un renglón. Los gramos salen de
+     * GRAMS_PER_DOLLAR, no están escritos a mano: si cambia la constante, la
+     * frase se corrige sola. Es la única línea de la página que dice qué se
+     * recibe a cambio de pagar.
      */
-    promise: "fill a kilo, get a sticker. you\u00a0don't get to pick which one.",
+    note: `five dollars is ${asWord(gramsForDollars(5))} grams. you get a sticker, and you don't get to pick which one.`,
   },
 
   /** Textos alternativos. Descriptivos y en el tono de la página, nunca vacíos. */
@@ -120,14 +120,12 @@ export const copy = {
   },
 
   privacy: {
-    lines: [
-      "I don't know who you are. I don't want to know.",
-      'Your stickers live in your browser and nowhere else.',
-    ],
+    line: "I don't know who you are. your stickers live in your browser and nowhere else.",
   },
 
   footer: {
-    lines: ['No account. No email. No newsletter.'],
+    /** Un renglón. Lo que sigue es el link. */
+    line: 'no account, no email',
     /**
      * La red de seguridad de todo el circuito. El único camino al sticker es el
      * mensaje de gracias de Ko-fi, y quien cierre esa pestaña lo pierde para
@@ -136,8 +134,6 @@ export const copy = {
      * propia /open lo dice en voz alta.
      */
     openLink: 'already paid? open your sticker',
-    /** Una línea más chica y más tibia, en el mismo registro seco. */
-    signature: 'made by hand, in the dark, at an hour that was not reasonable.',
   },
 
   open: {

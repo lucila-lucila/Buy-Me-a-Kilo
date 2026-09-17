@@ -88,7 +88,7 @@ img {
 .page {
   max-width: var(--page);
   margin-inline: auto;
-  padding: clamp(0.6rem, 2.5vw, 1.5rem) clamp(1rem, 5vw, 1.5rem) 3rem;
+  padding: clamp(0.6rem, 2.5vw, 1.5rem) clamp(1rem, 5vw, 1.5rem) 1.5rem;
   position: relative;
 }
 
@@ -496,7 +496,7 @@ img {
 /* -------------------------------------------------------------- privacy -- */
 
 .privacy {
-  margin: clamp(1.5rem, 5vw, 2.25rem) auto 0;
+  margin: clamp(1.1rem, 3vw, 1.5rem) auto 0;
   max-width: var(--measure);
   text-align: center;
   font-size: var(--fs-body);
@@ -505,8 +505,8 @@ img {
 }
 
 .footer {
-  margin-top: clamp(1.75rem, 6vw, 2.75rem);
-  padding-top: 1.25rem;
+  margin-top: clamp(1.1rem, 3vw, 1.5rem);
+  padding-top: 1rem;
   border-top: 1px solid var(--hairline);
   text-align: center;
   font-size: var(--fs-small);
@@ -1200,7 +1200,7 @@ img {
 .play__stage {
   position: relative;
   width: 100%;
-  height: clamp(200px, 52svh, 470px);
+  height: clamp(200px, 44svh, 400px);
   /* Sin marco y sin fondo propio: el canvas es transparente y lo que se ve
      detrás es la página misma, con su resplandor. Con borde y fondo se leía
      como un iframe pegado encima. */
@@ -1242,6 +1242,19 @@ img {
   pointer-events: none;
 }
 
+/* El récord, arriba a la derecha, chico. */
+.game__best {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.85rem;
+  margin: 0;
+  font-size: var(--fs-micro);
+  letter-spacing: 0.04em;
+  color: var(--paper-faint);
+  text-shadow: 0 2px 10px rgba(20, 9, 28, 0.9);
+  pointer-events: none;
+}
+
 /* Antes del primer toque. Con movimiento reducido es lo único que se mueve en
    la pantalla, que es ninguna cosa: el juego está congelado detrás. */
 .game__start {
@@ -1262,13 +1275,6 @@ img {
   white-space: nowrap;
   color: var(--paper);
   pointer-events: none;
-}
-
-.play__help {
-  margin: 0;
-  font-size: var(--fs-micro);
-  color: var(--paper-faint);
-  text-align: center;
 }
 
 /* El resultado, encima del último cuadro, que queda congelado. */
@@ -1329,6 +1335,19 @@ img {
 
 /* ------------------------------------------------------------ la valija -- */
 
+/* Las métricas y la cuenta regresiva, un solo bloque. En un teléfono se
+   apilan; en desktop van en la misma fila, la barra a la izquierda y la cuenta
+   a la derecha. Las reglas de la fila van al final de la hoja, después de
+   .countdown y .meter: una media query no suma especificidad. */
+.stats {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.9rem;
+  width: 100%;
+  margin-top: clamp(0.9rem, 2.5svh, 1.5rem);
+}
+
 /* Un medidor chico y un renglón. Kilo se fue al juego, así que la valija dejó
    de tener a quién acompañar: es un dato, no una ilustración. */
 .meter {
@@ -1338,7 +1357,6 @@ img {
   gap: 0.4rem;
   width: 100%;
   max-width: var(--measure);
-  margin: clamp(1rem, 3svh, 1.75rem) auto 0;
   min-height: 3.2em;
 }
 
@@ -1397,6 +1415,31 @@ img {
   font-size: var(--fs-micro);
   color: var(--paper-faint);
   text-align: center;
+}
+
+/* En desktop, métricas y cuenta regresiva en la misma fila. */
+@media (min-width: 720px) {
+  .stats {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: 2rem;
+  }
+
+  .stats .meter {
+    flex: 1 1 0;
+    align-items: flex-start;
+  }
+
+  .stats .meter__line {
+    text-align: left;
+  }
+
+  .stats .countdown {
+    flex: 0 0 auto;
+    align-items: flex-end;
+    min-height: 0;
+  }
 }
 
 /* ============================================================================
