@@ -7,6 +7,7 @@ import { remember } from '../../lib/records'
 
 /** Cada juego en su propio chunk: abrir el selector no baja ningún juego. */
 const Pack = lazy(() => import('./pack/Pack'))
+const Layover = lazy(() => import('./layover/Layover'))
 
 type Vista =
   | { modo: 'menu' }
@@ -140,7 +141,11 @@ export default function GamesLayer({ onClose }: { onClose: () => void }) {
 
         {vista.modo === 'juego' && (
           <Suspense fallback={null}>
-            <Pack onEnd={terminar(vista.id)} />
+            {vista.id === 'pack' ? (
+              <Pack onEnd={terminar(vista.id)} />
+            ) : (
+              <Layover onEnd={terminar(vista.id)} />
+            )}
           </Suspense>
         )}
 

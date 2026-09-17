@@ -29,7 +29,7 @@ export const GAMES: Game[] = [
     id: 'layover',
     name: 'Layover',
     line: 'fly from korea to japan. one button. dodge the excess baggage.',
-    ready: false,
+    ready: true,
   },
 ]
 

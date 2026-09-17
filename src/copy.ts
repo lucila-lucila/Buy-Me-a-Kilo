@@ -60,6 +60,8 @@ export const copy = {
     packed: (g: number) => `${g.toLocaleString('en-US')} grams`,
     /** Cómo se juega, en un renglón. Es también el nombre del canvas. */
     packHelp: 'drag or use the arrows. drop it in the suitcase.',
+    /** Lo mismo para Layover. Una sola acción, dicha en un renglón. */
+    layoverHelp: 'hold to rise, let go to fall. collect grams, dodge the charges.',
 
     /**
      * El resultado. Dice la verdad de una manera que empuja a donar sin mentir:
