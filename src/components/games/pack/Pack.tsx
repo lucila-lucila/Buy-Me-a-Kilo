@@ -13,6 +13,14 @@ const HOVER_FALL = 46
 const STEP = 1 / 120
 
 /**
+ * Tope duro de piezas. La partida ya termina por desborde o porque algo se fue
+ * afuera, pero las dos dependen de que un cuerpo se quede quieto, y un cuerpo
+ * que rebota para siempre no se queda quieto nunca. Con esto no hay ninguna
+ * forma de que la partida no termine.
+ */
+const MAX_PIEZAS = 40
+
+/**
  * Pack: apilar lo que cae adentro de la valija.
  *
  * Es la metáfora de la página convertida en acción —empacar hasta que no entra
@@ -47,7 +55,8 @@ export function Pack({ onEnd }: { onEnd: (grams: number) => void }) {
     let actual: Piece = pick(bag)
     let manoX = 0
     let manoY = 0
-    let sumados = 0
+    let tiradas = 0
+    let dentro = 0
     let perdido = false
     let finEn = 0
 
@@ -93,6 +102,18 @@ export function Pack({ onEnd }: { onEnd: (grams: number) => void }) {
 
     const radio = (p: Piece) => p.size * (box.right - box.left)
 
+    /**
+     * Los gramos que hay ADENTRO, no los que se tiraron. Lo que se cayó afuera
+     * no está empacado, y el número de arriba dice "grams", no "intentos".
+     */
+    const empacados = () => {
+      let total = 0
+      for (const b of bodies) {
+        if (b.x > box.left && b.x < box.right && b.y > box.rim) total += b.grams
+      }
+      return total
+    }
+
     const soltar = () => {
       if (perdido) return
       const r = radio(actual)
@@ -107,8 +128,7 @@ export function Pack({ onEnd }: { onEnd: (grams: number) => void }) {
         own: actual.own,
         still: 0,
       })
-      sumados += actual.grams
-      setGrams(sumados)
+      tiradas += 1
       actual = pick(bag)
       void loadSprite(actual.sprite, !actual.own)
       manoY = 46
@@ -205,8 +225,12 @@ export function Pack({ onEnd }: { onEnd: (grams: number) => void }) {
         // lost() ya exige que el cuerpo en falta esté quieto doce cuadros; pedir
         // además que TODA la pila se haya asentado no llegaba nunca, porque
         // siempre hay algo rebotando arriba, y la partida no terminaba.
+        dentro = empacados()
+        // setGrams con el mismo número no re-renderiza: React corta solo.
+        setGrams(dentro)
+
         const razon = lost(bodies, box, alto)
-        if (razon !== null) {
+        if (razon !== null || tiradas >= MAX_PIEZAS) {
           perdido = true
           finEn = ahora + 700
         }
@@ -219,7 +243,7 @@ export function Pack({ onEnd }: { onEnd: (grams: number) => void }) {
       if (perdido && ahora > finEn && !terminado.current) {
         terminado.current = true
         cancelAnimationFrame(raf)
-        onEnd(sumados)
+        onEnd(dentro)
       }
     }
 
