@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from 'react'
+import { memo, useEffect, useRef, useState } from 'react'
 import { copy } from '../../../copy'
+import { prefersReducedMotion } from '../../../lib/reducedMotion'
 import { loadSprite, spriteReady } from '../pack/sprites'
 import { PALETA, dibujar, formaDe, type Pais, type Pieza } from './landscape'
 
@@ -47,10 +48,21 @@ const HORIZONTE = 0.8
  * El paisaje va dibujado con formas y no con imágenes, porque las dos
  * ilustraciones de ecosistema todavía no existen como archivo. Cuando lleguen,
  * se cambia landscape.ts y el juego no se entera.
+ *
+ * No hay pantalla de inicio. Al cargar ya se ve el mundo andando y a Kilo
+ * flotando: el primer toque arranca la partida. Una pantalla de "play" antes
+ * del juego es un paso más entre la persona y lo único que la página tiene
+ * para ofrecerle gratis.
+ *
+ * Va envuelto en memo y espera un `onEnd` estable. El juego vive en la pantalla
+ * principal, al lado de un contador que hace tick cada segundo y de un fetch
+ * cada treinta: si el padre le cambiara la identidad de `onEnd`, el efecto se
+ * volvería a montar y la partida se reiniciaría sola en medio del vuelo.
  */
-export function Layover({ onEnd }: { onEnd: (grams: number) => void }) {
+export const Layover = memo(function Layover({ onEnd }: { onEnd: (grams: number) => void }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [grams, setGrams] = useState(0)
+  const [esperando, setEsperando] = useState(true)
   const terminado = useRef(false)
 
   useEffect(() => {
@@ -72,6 +84,16 @@ export function Layover({ onEnd }: { onEnd: (grams: number) => void }) {
     let muerto = false
     let finEn = 0
     let desinflado = 1
+    /** Antes del primer toque el mundo anda pero no pasa nada. */
+    let jugando = false
+    let reloj = 0
+    /**
+     * Con la preferencia de movimiento reducido puesta, el juego arranca
+     * congelado: se pinta un cuadro y el bucle se apaga hasta que alguien lo
+     * toca. El juego está ahora en la pantalla principal, y quien pidió que
+     * nada se mueva no puede caer en una pantalla con algo corriendo solo.
+     */
+    const quieto = prefersReducedMotion()
 
     const paisaje: Pieza[] = []
     /**
@@ -144,6 +166,15 @@ export function Layover({ onEnd }: { onEnd: (grams: number) => void }) {
     // ---------------------------------------------------------------- entrada
     const arriba = () => {
       subiendo = true
+      if (!jugando && !terminado.current) {
+        jugando = true
+        setEsperando(false)
+        // Con movimiento reducido el bucle estaba apagado: se enciende acá.
+        if (raf === 0) {
+          previo = performance.now()
+          raf = requestAnimationFrame(loop)
+        }
+      }
     }
     const abajo = () => {
       subiendo = false
@@ -322,10 +353,49 @@ export function Layover({ onEnd }: { onEnd: (grams: number) => void }) {
     let raf = 0
     let previo = performance.now()
 
+    /** El mundo corriendo. Lo mismo en la espera que en la partida. */
+    const correrPaisaje = (v: number, dt: number) => {
+      const c = ciclo()
+      for (const e of estrellas) {
+        e.x -= v * 0.12 * dt
+        if (e.x < -6) {
+          e.x += c
+          e.y = Math.random() * alto * 0.74
+        }
+      }
+      for (const pieza of paisaje) {
+        pieza.x -= v * pieza.capa * dt
+        if (pieza.x < -ancho * 0.4) {
+          pieza.x += c
+          pieza.tipo = formaDe(pais(), Math.floor(Math.random() * 4))
+          pieza.escala = 0.85 + Math.random() * 0.45
+        }
+      }
+    }
+
     const loop = (ahora: number) => {
       raf = requestAnimationFrame(loop)
       const dt = Math.min((ahora - previo) / 1000, 0.05)
       previo = ahora
+
+      // Antes del primer toque: se ve el mundo, no pasa nada. Ni cargos, ni
+      // gramos, ni reloj de partida. Y con movimiento reducido, ni eso: un
+      // cuadro y el bucle se apaga.
+      if (!jugando) {
+        if (quieto) {
+          render()
+          cancelAnimationFrame(raf)
+          raf = 0
+          return
+        }
+        reloj += dt
+        correrPaisaje(velocidad(), dt)
+        const antes = kiloY
+        kiloY = alto / 2 + Math.sin(reloj * 1.5) * alto * 0.055
+        kiloV = (kiloY - antes) / Math.max(dt, 0.001)
+        render()
+        return
+      }
 
       if (!muerto) {
         transcurrido += dt
@@ -345,23 +415,7 @@ export function Layover({ onEnd }: { onEnd: (grams: number) => void }) {
           kiloV = 0
         }
 
-        const c = ciclo()
-        for (const e of estrellas) {
-          e.x -= v * 0.12 * dt
-          if (e.x < -6) {
-            e.x += c
-            e.y = Math.random() * alto * 0.74
-          }
-        }
-        for (const pieza of paisaje) {
-          pieza.x -= v * pieza.capa * dt
-          if (pieza.x < -ancho * 0.4) {
-            pieza.x += c
-            pieza.tipo = formaDe(pais(), Math.floor(Math.random() * 4))
-            pieza.escala = 0.85 + Math.random() * 0.45
-          }
-        }
-
+        correrPaisaje(v, dt)
         soltarCosas(dt)
         const kx = ancho * KILO_X
 
@@ -414,7 +468,6 @@ export function Layover({ onEnd }: { onEnd: (grams: number) => void }) {
     }
 
     raf = requestAnimationFrame(loop)
-    canvas.focus()
 
     return () => {
       cancelAnimationFrame(raf)
@@ -428,20 +481,22 @@ export function Layover({ onEnd }: { onEnd: (grams: number) => void }) {
   }, [onEnd])
 
   return (
-    <div className="pack">
-      <p className="pack__score" aria-live="polite">
-        {copy.games.packed(grams)}
-      </p>
+    <div className="game__world">
       <canvas
-        className="pack__canvas"
+        className="game__canvas"
         ref={canvasRef}
         tabIndex={0}
         role="application"
-        aria-label={copy.games.layoverHelp}
+        aria-label={copy.game.help}
       />
-      <p className="pack__help">{copy.games.layoverHelp}</p>
+      {/* Encima del canvas y no arriba de él: el juego es el elemento más
+          grande de la pantalla y no puede perder alto contra su propio HUD. */}
+      <p className="game__score" aria-live="polite">
+        {copy.game.packed(grams)}
+      </p>
+      {esperando && <p className="game__start">{copy.game.tapToPlay}</p>}
     </div>
   )
-}
+})
 
 export default Layover

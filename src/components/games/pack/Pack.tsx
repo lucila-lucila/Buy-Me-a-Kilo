@@ -1,5 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { copy } from '../../../copy'
+
+/**
+ * Pack está apagado —`ready: false` en el catálogo— y no entra en el build.
+ * Su única línea de texto vive acá y no en copy.ts: la página de hoy tiene un
+ * solo juego, y el texto de un juego que no se muestra no tiene por qué ocupar
+ * lugar en el archivo de textos.
+ */
+const AYUDA = 'drag or use the arrows. drop it in the suitcase.'
 import { buildBag, pick, type Piece } from './objects'
 import { loadSprite, spriteReady } from './sprites'
 import { step, lost, wobble, type Body, type Box } from './physics'
@@ -262,16 +270,16 @@ export function Pack({ onEnd }: { onEnd: (grams: number) => void }) {
   return (
     <div className="pack">
       <p className="pack__score" aria-live="polite">
-        {copy.games.packed(grams)}
+        {copy.game.packed(grams)}
       </p>
       <canvas
         className="pack__canvas"
         ref={canvasRef}
         tabIndex={0}
         role="application"
-        aria-label={copy.games.packHelp}
+        aria-label={AYUDA}
       />
-      <p className="pack__help">{copy.games.packHelp}</p>
+      <p className="pack__help">{AYUDA}</p>
     </div>
   )
 }

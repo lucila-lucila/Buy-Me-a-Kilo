@@ -1048,6 +1048,11 @@ img {
   animation: countdown-in 340ms ease-out;
 }
 
+/* El segundero: mismo número, mismo tamaño, sin fundido. */
+.countdown__box:last-child .countdown__n {
+  animation: none;
+}
+
 .countdown__label {
   font-size: var(--fs-micro);
   letter-spacing: 0.04em;
@@ -1173,166 +1178,199 @@ img {
   max-width: var(--measure);
 }
 
-/* ------------------------------------------------------------ los juegos -- */
+/* -------------------------------------------------------------- el juego -- */
 
-/* El único acceso, debajo del botón. Chico y tenue: no compite con la acción
-   que sí importa, que es el botón de arriba. */
-.games__open {
-  border: 0;
-  /* Apretado arriba y abajo a propósito: en 360x640 el link queda justo en el
-     borde del fold y tres píxeles de padding lo empujaban afuera. */
-  padding: 0.1rem 0.4rem;
+/* El juego y el botón, que son un bloque.
+
+   El juego es el elemento más grande de la pantalla y el botón va pegado
+   abajo. Los dos tienen que entrar sin scroll en 360x640, así que el que cede
+   alto es el juego: el botón mide lo que mide. */
+.play {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  gap: 0.45rem;
+}
+
+/* El alto sale de svh y no de un aspect-ratio: en un teléfono angosto y alto
+   una proporción fija dejaba el canvas cuadrado y el botón afuera del fold.
+   El mínimo de 190px es lo último que se puede achicar sin que el juego deje
+   de ser jugable; abajo de eso ya no hay lugar para esquivar nada. */
+.play__stage {
+  position: relative;
+  width: 100%;
+  height: clamp(200px, 52svh, 470px);
+  border-radius: 18px;
+  border: 1px solid var(--hairline);
+  /* clip y no hidden: recorta sin crear un contenedor de scroll. */
+  overflow: clip;
+  background: #14091c;
+}
+
+.game__world {
+  position: absolute;
+  inset: 0;
+}
+
+.game__canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  /* Sin esto, arrastrar en el teléfono scrollea la página en vez de volar. */
+  touch-action: none;
+  cursor: pointer;
+}
+
+.game__canvas:focus-visible {
+  outline: 3px solid var(--mint);
+  outline-offset: -3px;
+}
+
+/* Los gramos de la partida, encima del canvas y no arriba de él: el juego no
+   puede perder alto contra su propio marcador. */
+.game__score {
+  position: absolute;
+  top: 0.6rem;
+  left: 0.85rem;
+  margin: 0;
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: var(--fs-heading);
+  line-height: 1;
+  color: var(--paper);
+  text-shadow: 0 2px 14px rgba(20, 9, 28, 0.9);
+  pointer-events: none;
+}
+
+/* Antes del primer toque. Con movimiento reducido es lo único que se mueve en
+   la pantalla, que es ninguna cosa: el juego está congelado detrás. */
+.game__start {
+  position: absolute;
+  bottom: 28%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+  padding: 0.35rem 1rem;
+  border-radius: 999px;
+  /* Un fondo propio y no solo una sombra: el cartel cae sobre el paisaje, que
+     cambia de color y de forma todo el tiempo, y sin esto queda ilegible justo
+     cuando pasa una silueta grande por debajo. */
+  background: rgba(20, 9, 28, 0.62);
+  font-family: var(--display);
+  font-size: var(--fs-heading);
+  line-height: 1.1;
+  white-space: nowrap;
+  color: var(--paper);
+  pointer-events: none;
+}
+
+.play__help {
+  margin: 0;
+  font-size: var(--fs-micro);
+  color: var(--paper-faint);
+  text-align: center;
+}
+
+/* El resultado, encima del último cuadro, que queda congelado. */
+.play__result {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  text-align: center;
+  background: rgba(20, 9, 28, 0.82);
+}
+
+.play__score {
+  margin: 0;
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: var(--fs-lead);
+  line-height: 1.2;
+  color: var(--paper);
+}
+
+/* La verdad, en el mismo tamaño y más apagada. El número es real y los gramos
+   no: si esta línea no estuviera, la página estaría mintiendo. */
+.play__fake {
+  color: var(--paper-dim);
+}
+
+.play__best {
+  margin: 0;
+  font-size: var(--fs-micro);
+  color: var(--paper-faint);
+}
+
+.play__again {
+  margin-top: 0.15rem;
+  padding: 0.5rem 1.2rem;
+  border: 1px solid var(--hairline-strong);
+  border-radius: 999px;
   background: none;
   font-family: var(--body);
   font-size: var(--fs-small);
   color: var(--paper-dim);
   cursor: pointer;
-  text-decoration: underline;
-  text-decoration-color: var(--hairline-strong);
-  text-underline-offset: 0.25em;
-  transition: color 200ms ease;
+  transition:
+    color 180ms ease,
+    border-color 180ms ease;
 }
 
-.games__open:hover,
-.games__open:focus-visible {
+.play__again:hover,
+.play__again:focus-visible {
   color: var(--mint);
-  text-decoration-color: var(--mint);
+  border-color: var(--mint);
 }
 
-/* Con la capa abierta, lo de atrás se congela. Difuminado y todavía moviéndose
-   se lee como un error. Es animation-play-state y no animation: none para que
-   al cerrar las animaciones sigan desde donde estaban en vez de saltar. */
-.games-open .page *,
-.games-open .glow,
-.games-open .grain {
-  animation-play-state: paused;
-}
+/* ------------------------------------------------------------ la valija -- */
 
-/* La capa. Por encima de todo, a pantalla completa.
-
-   El difuminado va como backdrop-filter acá y no como filter sobre la página:
-   un filter sobre .page crearía un contexto de apilado que le aislaría el
-   mix-blend-mode a Kilo y a la valija, y los dos volverían a dibujarse como
-   cuadrados negros justo detrás de un fondo semitransparente que los deja ver. */
-.games {
-  position: fixed;
-  inset: 0;
-  z-index: 10;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: clamp(1rem, 4vw, 2.5rem);
-  background: rgba(20, 9, 28, 0.82);
-  backdrop-filter: blur(14px) saturate(0.8);
-  -webkit-backdrop-filter: blur(14px) saturate(0.8);
-  animation: games-in 240ms ease-out;
-}
-
-@keyframes games-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-.games__body {
+/* Un medidor chico y un renglón. Kilo se fue al juego, así que la valija dejó
+   de tener a quién acompañar: es un dato, no una ilustración. */
+.meter {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: clamp(1.25rem, 4vw, 2rem);
-  width: min(100%, 720px);
-}
-
-.games__cards {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: clamp(0.75rem, 2.5vw, 1.25rem);
-  width: 100%;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-@media (min-width: 620px) {
-  .games__cards {
-    grid-template-columns: 1fr 1fr;
-  }
-}
-
-.games__card {
-  display: flex;
-  flex-direction: column;
   gap: 0.4rem;
   width: 100%;
-  height: 100%;
-  padding: clamp(1.1rem, 3.5vw, 1.75rem);
-  border: 1px solid var(--hairline-strong);
-  border-radius: 18px;
-  background: rgba(255, 246, 236, 0.04);
-  color: var(--paper);
-  text-align: left;
-  cursor: pointer;
-  transition:
-    border-color 180ms ease,
-    background 180ms ease,
-    transform 180ms ease;
+  max-width: var(--measure);
+  margin: clamp(1rem, 3svh, 1.75rem) auto 0;
+  min-height: 3.2em;
 }
 
-.games__card:hover:not(:disabled),
-.games__card:focus-visible:not(:disabled) {
-  border-color: var(--mint);
-  background: rgba(123, 240, 200, 0.08);
-  transform: translateY(-2px);
+.meter .goal {
+  width: 100%;
 }
 
-/* Mientras el juego no existe: se ve, se lee y no se puede tocar. */
-.games__card:disabled {
-  cursor: default;
-  opacity: 0.55;
+.meter .goal__track {
+  height: 6px;
 }
 
-.games__name {
-  font-family: var(--display);
-  font-weight: 400;
-  font-size: var(--fs-heading);
-  line-height: 1.1;
-}
-
-.games__line {
-  font-size: var(--fs-small);
-  line-height: 1.35;
-  color: var(--paper-dim);
-}
-
-.games__soon {
-  margin-top: 0.15rem;
-  font-size: var(--fs-micro);
-  letter-spacing: 0.04em;
-  color: var(--paper-faint);
-}
-
-.games__promise {
+.meter__line {
   margin: 0;
-  max-width: 44ch;
-  text-align: center;
-  font-size: var(--fs-small);
-  line-height: 1.4;
+  font-size: var(--fs-micro);
   color: var(--paper-dim);
+  text-align: center;
+  font-variant-numeric: tabular-nums;
 }
 
-/* ---- el juego y el resultado ---- */
+/* --------------------------------------------- Pack, apagado pero vivo ---- */
 
+/* Pack no entra en el build: su flag está en false y nadie lo importa. Estas
+   reglas se quedan igual, que son pocas, para que volver a encenderlo sea
+   cambiar un booleano y nada más. */
 .pack {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0.5rem;
   width: 100%;
-  /* La capa tiene la X arriba y el botón abajo a la derecha: el juego se queda
-     con lo del medio y no se mete debajo de ninguno de los dos. */
-  height: min(76svh, 640px);
+  height: 100%;
 }
 
 .pack__score {
@@ -1347,10 +1385,7 @@ img {
   flex: 1;
   width: 100%;
   min-height: 0;
-  /* Sin esto, arrastrar en el teléfono scrollea la página en vez de mover la
-     pieza. */
   touch-action: none;
-  border-radius: 14px;
 }
 
 .pack__canvas:focus-visible {
@@ -1363,142 +1398,6 @@ img {
   font-size: var(--fs-micro);
   color: var(--paper-faint);
   text-align: center;
-}
-
-.games__result {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.6rem;
-  text-align: center;
-}
-
-.games__resultScore {
-  margin: 0;
-  font-family: var(--display);
-  font-size: var(--fs-title);
-  line-height: 1.15;
-  color: var(--paper);
-}
-
-/* La segunda línea, la que dice la verdad, más callada que el número. */
-.games__resultFake {
-  font-size: 0.62em;
-  color: var(--paper-dim);
-}
-
-.games__best {
-  margin: 0;
-  font-size: var(--fs-small);
-  color: var(--paper-faint);
-}
-
-/* El botón grande del resultado: mismo color y misma forma que el de la
-   página, que no se toca. */
-.games__cta {
-  margin-top: 0.5rem;
-  display: block;
-  width: min(100%, 18rem);
-  padding: 0.8rem 1.5rem;
-  border-radius: 999px;
-  border: 1px solid var(--bubblegum);
-  background: linear-gradient(rgba(255, 79, 163, 0.2), rgba(255, 79, 163, 0.07));
-  box-shadow: 0 0 32px rgba(255, 79, 163, 0.28);
-  font-family: var(--display);
-  font-size: var(--fs-heading);
-  line-height: 1.1;
-  text-align: center;
-  text-decoration: none;
-  color: var(--paper);
-  transition:
-    background 180ms ease,
-    transform 180ms ease;
-}
-
-.games__cta:hover,
-.games__cta:focus-visible {
-  background: linear-gradient(rgba(255, 79, 163, 0.34), rgba(255, 79, 163, 0.14));
-  transform: translateY(-2px);
-}
-
-.games__note {
-  margin: 0;
-  font-size: var(--fs-micro);
-  color: var(--paper-faint);
-}
-
-.games__again {
-  margin-top: 0.4rem;
-  border: 0;
-  padding: 0.3rem 0.5rem;
-  background: none;
-  font-family: var(--body);
-  font-size: var(--fs-small);
-  color: var(--paper-dim);
-  cursor: pointer;
-  text-decoration: underline;
-  text-decoration-color: var(--hairline-strong);
-  text-underline-offset: 0.25em;
-}
-
-.games__again:hover,
-.games__again:focus-visible {
-  color: var(--mint);
-  text-decoration-color: var(--mint);
-}
-
-/* La X y el botón de donar viven en las esquinas y no se mueven: la capa puede
-   estar mostrando un juego abajo y los dos siguen ahí, sin taparlo. */
-.games__close {
-  position: absolute;
-  top: clamp(0.75rem, 2.5vw, 1.5rem);
-  right: clamp(0.75rem, 2.5vw, 1.5rem);
-  width: 2.75rem;
-  height: 2.75rem;
-  display: grid;
-  place-items: center;
-  border: 1px solid var(--hairline);
-  border-radius: 999px;
-  background: rgba(20, 9, 28, 0.6);
-  color: var(--paper-dim);
-  font-size: 1.5rem;
-  line-height: 1;
-  cursor: pointer;
-  transition:
-    color 180ms ease,
-    border-color 180ms ease;
-}
-
-.games__close:hover,
-.games__close:focus-visible {
-  color: var(--paper);
-  border-color: var(--paper-dim);
-}
-
-/* Chico y sin brillo: acá adentro el botón está para no desaparecer, no para
-   interrumpir. El grande sigue siendo el de la página. */
-.games__support {
-  position: absolute;
-  right: clamp(0.75rem, 2.5vw, 1.5rem);
-  bottom: clamp(0.75rem, 2.5vw, 1.5rem);
-  padding: 0.6rem 1.1rem;
-  border: 1px solid var(--bubblegum);
-  border-radius: 999px;
-  background: rgba(255, 79, 163, 0.16);
-  font-family: var(--display);
-  font-size: var(--fs-small);
-  line-height: 1;
-  text-decoration: none;
-  color: var(--paper);
-  transition:
-    background 180ms ease,
-    transform 180ms ease;
-}
-
-.games__support:hover,
-.games__support:focus-visible {
-  background: rgba(255, 79, 163, 0.3);
-  transform: translateY(-2px);
 }
 
 /* ============================================================================
@@ -1522,8 +1421,6 @@ img {
   .suitcase--overweight .suitcase__fill,
   .suitcase--overweight .suitcase__shell,
   .suitcase--overweight .spill,
-  .scene__kilo,
-  .games,
   .wave,
   .wave-bob,
   .countdown__n,
@@ -1538,18 +1435,7 @@ img {
   .wave-calm,
   .goal__fill,
   .rise,
-  .games__card,
-  .games__support,
-  .games__cta {
+  .play__again {
     transition: none;
-  }
-
-  .games__card:hover:not(:disabled),
-  .games__card:focus-visible:not(:disabled),
-  .games__support:hover,
-  .games__support:focus-visible,
-  .games__cta:hover,
-  .games__cta:focus-visible {
-    transform: none;
   }
 }

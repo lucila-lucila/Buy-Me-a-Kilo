@@ -36,32 +36,23 @@ export const copy = {
     next: 'next stop: south korea and japan.',
   },
 
-  games: {
-    /** El único acceso a los juegos. Chico, debajo del botón. */
-    open: 'or help me pack →',
+  game: {
     /**
-     * La única línea de la promesa del sticker que sobrevive fuera de /open.
-     * Vive en el selector de juegos: es lo que la persona recibe a cambio de
-     * pagar, y no puede desaparecer de la página entera.
-     *
-     * El espacio entre "You" y "don't" es duro (\u00a0) a propósito: sin él, en
-     * un teléfono angosto el renglón se cortaba justo después de "You".
+     * Cómo se juega, en un renglón, debajo del canvas. Es también el nombre
+     * accesible del canvas, así que tiene que decir la acción y no el adorno.
      */
-    promise: "fill a kilo, get a sticker. you\u00a0don't get to pick which one.",
+    help: 'tap to fly. collect what fits. avoid the fees.',
 
-    /** El nombre de la capa para un lector de pantalla. No se ve. */
-    label: 'games',
-    /** La X de arriba a la derecha. */
-    close: 'close',
-    /** Mientras el juego todavía no existe. Dice la verdad y no promete nada. */
-    notYet: 'not here yet',
+    /**
+     * Antes del primer toque. Con movimiento reducido es lo único que se ve:
+     * el juego arranca quieto y no se mueve hasta que la persona lo toca.
+     * Alguien que pidió que nada se mueva no puede entrar a una pantalla con
+     * un juego corriendo solo.
+     */
+    tapToPlay: 'tap to play',
 
-    /** Los gramos de la partida en curso. */
+    /** Los gramos de la partida en curso, arriba a la izquierda del canvas. */
     packed: (g: number) => `${g.toLocaleString('en-US')} grams`,
-    /** Cómo se juega, en un renglón. Es también el nombre del canvas. */
-    packHelp: 'drag or use the arrows. drop it in the suitcase.',
-    /** Lo mismo para Layover. Una sola acción, dicha en un renglón. */
-    layoverHelp: 'hold to rise, let go to fall. collect grams, dodge the charges.',
 
     /**
      * El resultado. Dice la verdad de una manera que empuja a donar sin mentir:
@@ -72,24 +63,21 @@ export const copy = {
       fake: 'none of them were real.',
       best: (g: number) => `your best: ${g.toLocaleString('en-US')} grams`,
       again: 'play again',
-      /** Debajo del botón de donar, en el resultado. */
+      /** Debajo del botón de donar, recién cuando hay un resultado. */
       note: 'five dollars is three grams. those ones count.',
     },
   },
 
   suitcase: {
-    /** El número grande: los kilos que hay adentro, con un decimal. */
-    ofCapacity: (capacity: number) => `of ${capacity} kilos`,
     /**
-     * El renglón que se mueve con cada aporte individual.
+     * Todo el estado de la valija en un renglón, al lado del medidor chico.
      *
-     * Sin el porcentaje: al lado de una barra que ya lo dibuja y de un número
-     * que ya dice los kilos, era el mismo dato por tercera vez. percentFull
-     * sigue viniendo de la API y sigue moviendo la barra y el nivel de la
-     * valija; lo único que se fue es imprimirlo.
+     * Kilo se fue a ser el personaje del juego, así que la valija dejó de tener
+     * a quién acompañar y dejó de ser una ilustración: es un dato. Los tres
+     * números salen de la API y ninguno está escrito a mano.
      */
-    detail: (grams: number, people: number) =>
-      `${grams.toLocaleString('en-US')} grams packed · ${people.toLocaleString('en-US')} people`,
+    line: (kilos: number, capacity: number, grams: number, people: number) =>
+      `${kilos.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} of ${capacity} kilos · ${grams.toLocaleString('en-US')} grams · ${people.toLocaleString('en-US')} people`,
     overweight: 'The suitcase is now illegal. Continue anyway.',
   },
 
@@ -101,7 +89,7 @@ export const copy = {
      * Las etiquetas de las tres cajitas. En plural siempre: son rótulos de
      * columna, no una frase, y "1 hours" no se lee como error acá.
      */
-    labels: { days: 'days', hours: 'hours', minutes: 'minutes' } as const,
+    labels: { days: 'days', hours: 'hours', minutes: 'minutes', seconds: 'seconds' } as const,
 
     /** En cero. Punto final: es la única frase de la página que lo lleva. */
     gone: 'the flight left.',
@@ -118,7 +106,7 @@ export const copy = {
 
   /** Textos alternativos. Descriptivos y en el tono de la página, nunca vacíos. */
   alt: {
-    kilo: 'Kilo, a small glowing blob with a face, standing in front of the suitcase',
+    kilo: 'Kilo, a small glowing blob with a face',
     suitcase: 'A suitcase filling up with light as people put grams in it',
   },
 
@@ -130,7 +118,7 @@ export const copy = {
   },
 
   footer: {
-    lines: ['No account. No email. No newsletter.', 'You will never hear from me again.'],
+    lines: ['No account. No email. No newsletter.'],
     /**
      * La red de seguridad de todo el circuito. El único camino al sticker es el
      * mensaje de gracias de Ko-fi, y quien cierre esa pestaña lo pierde para

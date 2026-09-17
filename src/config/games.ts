@@ -23,7 +23,9 @@ export const GAMES: Game[] = [
     id: 'pack',
     name: 'Pack',
     line: 'stack what falls into the suitcase before the pile tips over.',
-    ready: true,
+    // Apagado para el lanzamiento. El código queda en el repo y fuera del
+    // build: si mañana algo sale mal con Layover, el otro juego sigue estando.
+    ready: false,
   },
   {
     id: 'layover',

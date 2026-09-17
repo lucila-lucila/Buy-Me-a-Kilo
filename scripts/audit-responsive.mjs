@@ -25,10 +25,13 @@ const PAGES = [
 ]
 
 const VIEWPORTS = [
-  // 360x640 es el contrato: ahí los cuatro tiers tienen que entrar antes del
-  // fold. En 320x568 y en horizontal el hero no entra y es una decisión, no un
-  // bug: comprimirlo más para un teléfono de 2016 rompería el resto.
-  { name: 'iPhone SE viejo', w: 320, h: 568, foldOptional: true },
+  // 360x640 es el contrato y 320x568 también: con el juego en la pantalla
+  // principal, el botón tiene que entrar antes del fold en los dos. El que se
+  // achica cuando no entra es el juego, nunca el botón.
+  //
+  // En horizontal sigue sin entrar, y eso es una decisión: 360 de alto no
+  // alcanzan para un juego jugable más el botón.
+  { name: 'iPhone SE viejo', w: 320, h: 568 },
   { name: 'referencia', w: 360, h: 640 },
   { name: 'Android típico', w: 390, h: 844 },
   { name: 'iPhone Plus', w: 414, h: 896 },
@@ -81,16 +84,16 @@ for (const pg of PAGES) for (const vp of VIEWPORTS) {
       }
     }
 
-    // Kilo y la valija. Las capas del dibujo se pasan del cuadro a propósito y
-    // la escena las recorta, así que acá no se mide si se salen —para eso está
-    // scrollH, que mira el documento entero— sino que Kilo entre en su caja.
-    const stage = document.querySelector('.scene')
+    // El juego. Es el elemento más grande de la pantalla y el que cede alto
+    // cuando el botón no entra, así que lo que se mide acá es cuánto le quedó:
+    // abajo de 190 px ya no se puede esquivar nada y deja de ser jugable.
+    const stage = document.querySelector('.play__stage')
     let escena = null
     if (stage) {
       const caja = stage.getBoundingClientRect()
-      const kilo = document.querySelector('.scene__kilo')?.getBoundingClientRect()
-      const fuera = kilo && (kilo.left < caja.left - 1 || kilo.right > caja.right + 1) ? 1 : 0
-      escena = { fuera, kilo: kilo ? Math.round(kilo.width) : 0 }
+      const canvas = document.querySelector('.game__canvas')?.getBoundingClientRect()
+      const fuera = canvas && (canvas.width < 1 || canvas.height < 1) ? 1 : 0
+      escena = { fuera, kilo: Math.round(caja.height) }
     }
 
     return {
@@ -121,7 +124,7 @@ for (const pg of PAGES) for (const vp of VIEWPORTS) {
       r.lastBottom === null
         ? '—'
         : `${r.lastBottom}/${vp.h}${foldOk ? '' : vp.foldOptional ? ' (acepta)' : ' ⚠'}`,
-    speed: r.escena ? `kilo ${r.escena.kilo}px` : '—',
+    speed: r.escena ? `juego ${r.escena.kilo}px` : '—',
     estado: problems.length ? problems.join(', ') : 'ok',
   })
   for (const o of r.overflowing) rows.push({ vp: '', name: '', fold: '', speed: '', estado: `    ↳ ${o}` })
@@ -131,7 +134,7 @@ for (const pg of PAGES) for (const vp of VIEWPORTS) {
 await browser.close()
 
 const pad = (v, n) => String(v).padEnd(n)
-console.log(`\n${pad('viewport', 11)}${pad('', 26)}${pad('botón/fold', 13)}${pad('escena', 14)}estado`)
+console.log(`\n${pad('viewport', 11)}${pad('', 26)}${pad('botón/fold', 13)}${pad('juego', 14)}estado`)
 console.log('-'.repeat(88))
 for (const r of rows) {
   console.log(`${pad(r.vp, 11)}${pad(r.name, 26)}${pad(r.fold, 13)}${pad(r.speed, 14)}${r.estado}`)
