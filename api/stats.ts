@@ -73,6 +73,9 @@ export default async function handler(req: Request): Promise<Response> {
     ['GET', K.grossOther],
     ['GET', K.shareGenerated],
     ['GET', K.stickerSerial],
+    // Los aportes que pasaron el tope y no se sumaron. Si hay algo acá, hay
+    // plata que entró y un contador que no se movió: se resuelve a mano.
+    ['LRANGE', K.overcap, 0, -1],
   ]
   for (const w of prev) reads.push(['GET', K.grossWeek(w)], ['GET', K.contribWeek(w)], ['GET', K.weekGrams(w)])
 
@@ -80,14 +83,12 @@ export default async function handler(req: Request): Promise<Response> {
   try {
     raw = await pipeline(reads)
   } catch (err) {
-    // Diagnóstico: qué variables de KV ve la función. Solo nombres, nunca
-    // valores. Es lo único que hace falta para saber por qué el contador da null.
+    // El detalle del error va al log, que es privado. Para afuera, aunque sea
+    // para la clave válida, solo qué variables de KV ve la función: nombres,
+    // nunca valores. Es lo único que hace falta para saber por qué da null.
+    console.error('stats: kv no disponible', err instanceof Error ? err.message : 'unknown')
     return Response.json(
-      {
-        error: 'kv unavailable',
-        reason: err instanceof Error ? err.message : 'unknown',
-        kvEnv: describeKvEnv(),
-      },
+      { error: 'kv unavailable', kvEnv: describeKvEnv() },
       { status: 503, headers: { 'Cache-Control': 'no-store' } },
     )
   }
@@ -102,6 +103,16 @@ export default async function handler(req: Request): Promise<Response> {
   const otherCurrency = toInt(raw[i++])
   const shareGenerated = toInt(raw[i++])
   const stickersHandedOut = toInt(raw[i++])
+  const overcapRaw = raw[i++]
+  const overcap = Array.isArray(overcapRaw)
+    ? overcapRaw.map((r) => {
+        try {
+          return JSON.parse(String(r)) as unknown
+        } catch {
+          return String(r)
+        }
+      })
+    : []
 
   const history = prev.map((w) => ({
     week: w,
@@ -129,6 +140,12 @@ export default async function handler(req: Request): Promise<Response> {
   return Response.json(
     {
       week,
+      /**
+       * Lo primero, porque es lo único que pide una acción: cada renglón es un
+       * aporte real que pasó el tope de US$500 y NO se sumó al contador. Vacío
+       * es lo normal.
+       */
+      overcapPending: overcap,
       // Mismo estado que ve la página, para poder comparar de un vistazo.
       journey: journeyState({ grams: totalGrams, people: contribTotal }),
       seed: { grams: SEED_GRAMS, people: SEED_PEOPLE, note: 'aportes previos a la página, sumados al leer' },

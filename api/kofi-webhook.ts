@@ -18,6 +18,22 @@ export const config = { runtime: 'edge' }
 const DEDUPE_TTL_SECONDS = 7 * 24 * 60 * 60
 
 /**
+ * Tope por transacción, en centavos. Arriba de esto no se escribe: un aporte de
+ * un millón de dólares mal parseado llena la valija de una y no hay forma de
+ * volver atrás, porque el contador es monótono.
+ *
+ * Pero tampoco desaparece. Un aporte real grande que no se cuenta es plata que
+ * entró sin que el contador se mueva, que es justo lo que la página no puede
+ * hacer. Así que queda una marca en dos lugares: en el log, con la palabra
+ * OVERCAP para buscarla, y en la lista `kofi_overcap` de KV, que /api/stats
+ * muestra, para sumarlo a mano después de mirarlo.
+ */
+const MAX_CENTS = 500 * 100
+
+/** Un payload de Ko-fi mide alrededor de un kilobyte. Esto es dieciséis. */
+const MAX_BODY_BYTES = 16 * 1024
+
+/**
  * El id que Ko-fi manda en su webhook de prueba. Es un valor fijo y documentado.
  *
  * Con la prueba se recorre todo el circuito —parsear, validar el token,
@@ -44,6 +60,11 @@ export default async function handler(req: Request): Promise<Response> {
     return new Response('not configured', { status: 500 })
   }
 
+  // Antes de leer el cuerpo: un payload enorme se rechaza por el tamaño que
+  // declara, sin gastar en parsearlo.
+  const declared = Number(req.headers.get('content-length') ?? '0')
+  if (declared > MAX_BODY_BYTES) return new Response('payload too large', { status: 413 })
+
   // ---- solo estas seis variables sobreviven al parseo -----------------------
   let verification_token = ''
   let type = ''
@@ -53,7 +74,9 @@ export default async function handler(req: Request): Promise<Response> {
   let message_id = ''
 
   try {
-    const raw = new URLSearchParams(await req.text()).get('data')
+    const body = await req.text()
+    if (body.length > MAX_BODY_BYTES) return new Response('payload too large', { status: 413 })
+    const raw = new URLSearchParams(body).get('data')
     if (!raw) return new Response('bad request', { status: 400 })
     const p = JSON.parse(raw) as Record<string, unknown>
     verification_token = String(p.verification_token ?? '')
@@ -125,6 +148,15 @@ export default async function handler(req: Request): Promise<Response> {
     if (currency !== 'USD') {
       await cmd('INCR', K.grossOther)
       return new Response('ok', { status: 200 })
+    }
+
+    // Arriba del tope no se escribe, pero queda la marca en el log y en KV.
+    // 200 y no 500: Ko-fi no tiene que reintentar, esto se resuelve a mano.
+    if (cents > MAX_CENTS) {
+      const renglon = JSON.stringify({ id: kofi_transaction_id, cents, currency, type, at: new Date().toISOString() })
+      await cmd('LPUSH', K.overcap, renglon)
+      console.error('kofi: OVERCAP no sumado, revisar a mano', renglon)
+      return new Response('over cap', { status: 200 })
     }
 
     // Monto libre: la conversión es proporcional y no hay escalones. Un aporte

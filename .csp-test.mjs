@@ -1,0 +1,10 @@
+const { chromium } = await import('playwright')
+const b = await chromium.launch({ executablePath: process.env.CHROME_PATH })
+const c = await b.newContext({ viewport:{width:390,height:844} })
+const p = await c.newPage()
+const viol = [], err = []
+p.on('console', m => { const t = m.text(); if (/Content Security Policy|Refused to|policy violation/i.test(t)) viol.push(t.slice(0,140)); else if (m.type()==='error' && !/404/.test(t)) err.push(t.slice(0,140)) })
+p.on('pageerror', e => err.push(String(e).slice(0,140)))
+await p.goto('http://localhost:4174/open?sticker=sticker_05', { waitUntil:'networkidle' }); await p.waitForTimeout(6000)
+console.log('/open · violaciones de política:', viol.length ? viol.join(' || ') : 'ninguna', '· errores:', err.length ? err.join(' || ') : 'ninguno (el 404 es /api/serial, que el servidor de prueba no tiene)')
+await b.close()

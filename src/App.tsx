@@ -27,9 +27,10 @@ import { Glow } from './components/Glow'
 export default function App() {
   const { data, stale, clock } = useKilos()
 
+  // Pasado el 100% el resplandor se queda donde está: nada celebra el
+  // sobrepeso, se nota por el número.
   const percent = data?.percentFull ?? 0
-  const overweight = percent > 100
-  const glow = 0.35 + Math.min(1, percent / 100) * 0.65 + (overweight ? 0.3 : 0)
+  const glow = 0.35 + Math.min(1, percent / 100) * 0.65
 
   return (
     <>

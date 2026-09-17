@@ -81,7 +81,13 @@ export const copy = {
      */
     line: (kilos: number, capacity: number, grams: number, people: number) =>
       `${kilos.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} of ${capacity} kilos · ${grams.toLocaleString('en-US')} grams · ${people.toLocaleString('en-US')} people`,
-    overweight: 'The suitcase is now illegal. Continue anyway.',
+    /**
+     * Pasados los 23 kilos. Aparece una sola vez, debajo del renglón de la
+     * valija, y es lo único que cambia: sin derrame, sin celebración. Se nota
+     * por el número, no por un efecto. El botón sigue igual, porque la página
+     * sigue aceptando plata: un botón muerto sería la única forma de rechazarla.
+     */
+    overweight: "the suitcase is full. this is overweight now. i'll pay the fee.",
   },
 
   countdown: {

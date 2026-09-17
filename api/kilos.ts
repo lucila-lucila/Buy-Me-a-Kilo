@@ -11,7 +11,9 @@ import { journeyState } from './_lib/journey.js'
 
 export const config = { runtime: 'edge' }
 
-export default async function handler(): Promise<Response> {
+export default async function handler(req: Request): Promise<Response> {
+  // Solo lectura, solo GET. HEAD también, que es lo que mandan los monitores.
+  if (req.method !== 'GET' && req.method !== 'HEAD') return new Response(null, { status: 405 })
   try {
     const [grams, people] = await pipeline([
       ['GET', K.totalGrams],

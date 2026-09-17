@@ -24,4 +24,10 @@ export const K = {
    * de nombres distintos y no se pisan entre sí.
    */
   dedupeMessage: (messageId: string) => `msg:${messageId}`,
+  /**
+   * Los aportes que pasaron el tope por transacción y NO se sumaron. Una lista
+   * con un renglón por aporte —id, centavos, moneda, fecha— para poder sumarlos
+   * a mano después de mirarlos. Sin datos personales, y sin TTL: es un pendiente.
+   */
+  overcap: 'kofi_overcap',
 } as const
